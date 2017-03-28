@@ -1,0 +1,20 @@
+[package]
+name = "lisp"
+version = "0.1.0"
+authors = ["nathanfaucett <nathanfaucett@gmail.com>"]
+
+keywords = ["lisp"]
+description = "a lisp in rust"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/nathanfaucett/rs-lisp.git"
+homepage = "https://github.com/nathanfaucett/rs-lisp"
+
+[dependencies]
+impl_any = {git = "https://github.com/nathanfaucett/rs-impl_any.git"}
+collection_traits = {git = "https://github.com/nathanfaucett/rs-collection_traits.git"}
+linked_list = {git = "https://github.com/nathanfaucett/rs-linked_list.git"}
+hash_map = {git = "https://github.com/nathanfaucett/rs-hash_map.git"}
+vector = {git = "https://github.com/nathanfaucett/rs-vector.git"}
+
+[dev-dependencies]
