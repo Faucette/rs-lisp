@@ -17,9 +17,6 @@ pub struct Type {
     names: Option<Vector<String>>,
     types: Option<Vector<Object<Type>>>,
 
-    constructor: Option<usize>,
-    destructor: Option<usize>,
-
     size: usize,
 
     is_abstract: bool,
@@ -50,9 +47,6 @@ pub struct TypeBuilder {
     names: Option<Vector<String>>,
     types: Option<Vector<Object<Type>>>,
 
-    constructor: Option<usize>,
-    destructor: Option<usize>,
-
     size: usize,
 
     is_abstract: bool,
@@ -70,10 +64,7 @@ impl TypeBuilder {
             names: None,
             types: None,
 
-            constructor: None,
-            destructor: None,
-
-            size: 0,
+            size: 0usize,
 
             is_abstract: false,
             is_bits: false,
@@ -93,16 +84,6 @@ impl TypeBuilder {
     #[inline]
     pub fn types(mut self, types: Vector<Object<Type>>) -> Self {
         self.types = Some(types);
-        self
-    }
-    #[inline]
-    pub fn constructor(mut self, constructor: Option<usize>) -> Self {
-        self.constructor = constructor;
-        self
-    }
-    #[inline]
-    pub fn destructor(mut self, destructor: Option<usize>) -> Self {
-        self.destructor = destructor;
         self
     }
     #[inline]
@@ -129,9 +110,6 @@ impl TypeBuilder {
 
             names: self.names,
             types: self.types,
-
-            constructor: self.constructor,
-            destructor: self.destructor,
 
             size: self.size,
 

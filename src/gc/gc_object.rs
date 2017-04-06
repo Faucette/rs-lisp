@@ -18,19 +18,15 @@ impl<T> GcObject<T> {
 
     #[inline(always)]
     pub fn new(data: T) -> Self {
-        GcObject {
-            ptr: unsafe {
-                Shared::new(Box::into_raw(Box::new(data)))
-            },
+        unsafe {
+            Self::from_ptr(Box::into_raw(Box::new(data)))
         }
     }
 
     #[inline(always)]
-    pub fn from_ptr(ptr: *mut T) -> Self {
+    pub unsafe fn from_ptr(ptr: *mut T) -> Self {
         GcObject {
-            ptr: unsafe {
-                Shared::new(ptr)
-            },
+            ptr: Shared::new(ptr),
         }
     }
 

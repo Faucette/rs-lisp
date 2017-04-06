@@ -1,4 +1,4 @@
-mod clone_box;
+mod ptr;
 
 
-pub use self::clone_box::CloneBox;
+pub use self::ptr::Ptr;

@@ -8,20 +8,15 @@ use collection_traits::*;
 use linked_list::LinkedList;
 
 use super::super::gc::GcObject;
-use super::super::utils::CloneBox;
-use super::scope::Scope;
+use super::super::utils::Ptr;
 use super::typ::{Type, TypeBuilder};
 use super::value::Value;
 
 
-pub struct ObjectInner<T> {
-    typ: CloneBox<Object<Type>>,
-    value: GcObject<T>,
-}
-
-
+#[derive(Clone)]
 pub struct Object<T> {
-    ptr: Shared<ObjectInner<T>>
+    typ: Ptr<Object<Type>>,
+    value: Ptr<GcObject<T>>,
 }
 
 unsafe impl<T: Sync + Send> Send for Object<T> {}
@@ -30,37 +25,30 @@ unsafe impl<T: Send + Sync> Sync for Object<T> {}
 impl<T> Object<T> {
 
     #[inline(always)]
-    pub fn new(typ: Object<Type>, value: T) -> Self {
-        Object {
-            ptr: unsafe {
-                Shared::new(Box::into_raw(Box::new(ObjectInner {
-                    typ: CloneBox::new(typ),
-                    value: GcObject::new(value),
-                })))
-            },
-        }
+    pub fn new(typ: Ptr<Object<Type>>, value: T) -> Ptr<Self> {
+        Ptr::new(Object {
+            typ: typ,
+            value: Ptr::new(GcObject::new(value)),
+        })
     }
 
     #[inline(always)]
-    fn inner(&self) -> &ObjectInner<T> {
-        unsafe {
-            &**(self.ptr)
-        }
-    }
-    #[inline(always)]
-    fn inner_mut(&mut self) -> &mut ObjectInner<T> {
-        unsafe {
-            &mut *(*self.ptr as *mut ObjectInner<T>)
-        }
+    pub fn new_null_typ(value: T) -> Ptr<Self> {
+        Ptr::new(Object {
+            typ: unsafe {
+                mem::uninitialized()
+            },
+            value: Ptr::new(GcObject::new(value)),
+        })
     }
 
     #[inline(always)]
     pub fn value(&self) -> &GcObject<T> {
-        &self.inner().value
+        &self.value
     }
     #[inline(always)]
     pub fn value_mut(&mut self) -> &mut GcObject<T> {
-        &mut self.inner_mut().value
+        &mut self.value
     }
 }
 
@@ -68,32 +56,21 @@ impl<T: 'static + Send + Sync> Value for Object<T> {
 
     #[inline(always)]
     fn typ(&self) -> &Object<Type> {
-        &self.inner().typ
+        &*self.typ
     }
 
     #[inline(always)]
     fn typ_mut(&mut self) -> &mut Object<Type> {
-        &mut self.inner_mut().typ
-    }
-}
-
-impl<T> Clone for Object<T> {
-
-    #[inline(always)]
-    fn clone(&self) -> Self {
-        Object {
-            ptr: self.ptr,
-        }
+        &mut *self.typ
     }
 }
 
 impl<T> Deref for Object<T> {
     type Target = T;
 
-
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
-        &self.inner().value
+        &*self.value
     }
 }
 
@@ -101,29 +78,25 @@ impl<T> DerefMut for Object<T> {
 
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.inner_mut().value
+        &mut *self.value
     }
 }
 
-pub fn init_typ(typ_typ: Object<Type>, typ: Type) -> Object<Type> {
+pub fn init_typ(typ_typ: Ptr<Object<Type>>, typ: Type) -> Ptr<Object<Type>> {
     Object::new(typ_typ, typ)
 }
 
-pub unsafe fn init_typ_typ() -> Object<Type> {
-    let mut typ = Object::new(
-        mem::uninitialized(),
+pub fn init_typ_typ() -> Ptr<Object<Type>> {
+    let mut typ = Object::new_null_typ(
         TypeBuilder::new("Type").is_abstract().build()
     );
-    *(typ.inner_mut().typ) = typ.clone();
+    typ.typ = typ;
     typ
 }
 
-pub fn init_typs(scope: &mut Scope) {
+pub fn init_typs() {
     let mut typ = unsafe {
         init_typ_typ()
     };
-    let mut any = init_typ(typ.clone(), TypeBuilder::new("Any").is_abstract().build());
-
-    scope.define("Any".into(), any);
-    scope.define("Type".into(), typ.clone());
+    let mut any = init_typ(typ, TypeBuilder::new("Any").is_abstract().build());
 }

@@ -17,8 +17,10 @@ extern crate collection_traits;
 extern crate hash_map;
 extern crate linked_list;
 extern crate vector;
+extern crate lexer;
 
 
 pub mod gc;
 pub mod lang;
+pub mod reader;
 pub mod utils;
