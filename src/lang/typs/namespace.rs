@@ -1,10 +1,10 @@
 use collection_traits::*;
 use hash_map::HashMap;
 
-use super::super::utils::Ptr;
-use super::symbol::Symbol;
-use super::object::Object;
-use super::value::Value;
+use super::super::super::Ptr;
+use super::super::Object;
+use super::super::Value;
+use super::Symbol;
 
 
 pub struct Namespace {

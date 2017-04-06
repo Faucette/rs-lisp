@@ -5,9 +5,10 @@ use core::mem;
 
 use vector::Vector;
 
-use super::super::utils::Ptr;
-use super::value::Value;
-use super::object::Object;
+use super::super::Ptr;
+use super::Function;
+use super::Value;
+use super::Object;
 
 
 pub struct Type {
@@ -17,6 +18,9 @@ pub struct Type {
 
     pub(crate) names: Option<Vector<String>>,
     pub(crate) types: Option<Vector<Ptr<Object<Type>>>>,
+    
+    pub(crate) constructor: Option<Ptr<Function>>,
+    pub(crate) destructor: Option<Ptr<Function>>,
 
     pub(crate) size: usize,
 
@@ -47,6 +51,9 @@ pub struct TypeBuilder {
 
     names: Option<Vector<String>>,
     types: Option<Vector<Ptr<Object<Type>>>>,
+    
+    constructor: Option<Ptr<Function>>,
+    destructor: Option<Ptr<Function>>,
 
     size: usize,
 
@@ -64,6 +71,9 @@ impl TypeBuilder {
 
             names: None,
             types: None,
+    
+            constructor: None,
+            destructor: None,
 
             size: 0usize,
 
@@ -93,6 +103,16 @@ impl TypeBuilder {
         self
     }
     #[inline]
+    pub fn constructor(mut self, constructor: Ptr<Function>) -> Self {
+        self.constructor = Some(constructor);
+        self
+    }
+    #[inline]
+    pub fn destructor(mut self, destructor: Ptr<Function>) -> Self {
+        self.destructor = Some(destructor);
+        self
+    }
+    #[inline]
     pub fn is_abstract(mut self) -> Self {
         self.is_abstract = true;
         self
@@ -111,6 +131,9 @@ impl TypeBuilder {
 
             names: self.names,
             types: self.types,
+    
+            constructor: self.constructor,
+            destructor: self.destructor,
 
             size: self.size,
 

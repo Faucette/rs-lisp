@@ -24,3 +24,8 @@ pub mod gc;
 pub mod lang;
 pub mod reader;
 pub mod utils;
+
+
+pub use self::gc::*;
+pub use self::lang::*;
+pub use self::utils::*;

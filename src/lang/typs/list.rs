@@ -1,5 +1,5 @@
-use super::super::utils::Ptr;
-use super::object::Object;
+use super::super::super::Ptr;
+use super::super::Object;
 
 
 struct Node<T> {

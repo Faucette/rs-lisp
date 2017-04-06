@@ -1,3 +1,6 @@
+use alloc::heap;
+
+use core::mem;
 use core::ops::{Deref, DerefMut};
 use core::hash::{Hash, Hasher};
 

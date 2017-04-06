@@ -7,11 +7,12 @@ use core::hash::{Hash, Hasher};
 use collection_traits::*;
 use linked_list::LinkedList;
 
-use super::super::gc::GcObject;
-use super::super::utils::Ptr;
-use super::typ::{Type, TypeBuilder};
-use super::value::Value;
-use super::list::List;
+use super::super::GcObject;
+use super::super::Ptr;
+use super::{Type, TypeBuilder};
+use super::Value;
+use super::List;
+use super::Function;
 
 
 #[derive(Clone)]
@@ -34,7 +35,7 @@ impl<T> Object<T> {
     }
 
     #[inline(always)]
-    pub fn new_null_typ(value: T) -> Ptr<Self> {
+    pub(crate) fn new_null_typ(value: T) -> Ptr<Self> {
         Ptr::new(Object {
             typ: unsafe {
                 mem::uninitialized()
@@ -63,6 +64,14 @@ impl<T: 'static + Send + Sync> Value for Object<T> {
     #[inline(always)]
     fn typ_mut(&mut self) -> &mut Object<Type> {
         &mut *self.typ
+    }
+}
+
+impl<T: Function> Function for Object<T> {
+
+    #[inline(always)]
+    fn call(&self, args: Ptr<Object<List<Ptr<Value>>>>) -> Ptr<Value> {
+        self.value.call(args)
     }
 }
 
