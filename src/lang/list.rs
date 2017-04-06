@@ -4,7 +4,7 @@ use super::object::Object;
 
 struct Node<T> {
     next: Option<Ptr<Object<Node<T>>>>,
-    value: Ptr<Object<T>>,
+    data: Ptr<Object<T>>,
 }
 
 impl<T> Node<T> {
@@ -12,14 +12,15 @@ impl<T> Node<T> {
     #[inline(always)]
     pub fn new(
         next: Option<Ptr<Object<Node<T>>>>,
-        value: Ptr<Object<T>>
+        data: Ptr<Object<T>>
     ) -> Self {
         Node {
             next: next,
-            value: value,
+            data: data,
         }
     }
 }
+
 
 pub struct List<T> {
     root: Option<Ptr<Object<Node<T>>>>,
@@ -39,8 +40,8 @@ impl<T> List<T> {
     }
 
     #[inline]
-    pub fn push(&self, value: Ptr<Object<T>>) -> Self {
-        let new_node = Some(Object::new_null_typ(Node::new(self.root, value)));
+    pub fn push(&self, data: Ptr<Object<T>>) -> Self {
+        let new_node = Some(Object::new_null_typ(Node::new(self.root, data)));
         let mut new_list = List::new();
 
         if self.tail.is_some() {
@@ -71,7 +72,7 @@ impl<T> List<T> {
     #[inline]
     pub fn peek(&self) -> Option<Ptr<Object<T>>> {
         match self.root {
-            Some(root) => Some(root.value),
+            Some(root) => Some(root.data),
             None => None,
         }
     }

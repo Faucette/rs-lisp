@@ -5,6 +5,7 @@ use core::{isize, mem, ptr, fmt};
 use core::intrinsics::abort;
 use core::ptr::Shared;
 use core::ops::{Deref, DerefMut};
+use core::hash::{Hash, Hasher};
 
 
 pub struct GcObject<T: ?Sized> {
@@ -86,5 +87,23 @@ impl<T> DerefMut for GcObject<T> {
         unsafe {
             &mut *(*self.ptr as *mut T)
         }
+    }
+}
+
+impl<T: PartialEq> PartialEq for GcObject<T> {
+
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        &*self.ptr == &*other.ptr
+    }
+}
+
+impl<T: Eq> Eq for GcObject<T> {}
+
+impl<T: Hash> Hash for GcObject<T> {
+
+    #[inline(always)]
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        (&*self.ptr).hash(state);
     }
 }

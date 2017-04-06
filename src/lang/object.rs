@@ -2,7 +2,7 @@ use collections::string::String;
 
 use core::mem;
 use core::ops::{Deref, DerefMut};
-use core::ptr::Shared;
+use core::hash::{Hash, Hasher};
 
 use collection_traits::*;
 use linked_list::LinkedList;
@@ -11,12 +11,13 @@ use super::super::gc::GcObject;
 use super::super::utils::Ptr;
 use super::typ::{Type, TypeBuilder};
 use super::value::Value;
+use super::list::List;
 
 
 #[derive(Clone)]
 pub struct Object<T> {
-    typ: Ptr<Object<Type>>,
-    value: Ptr<GcObject<T>>,
+    pub(crate) typ: Ptr<Object<Type>>,
+    pub(crate) value: Ptr<GcObject<T>>,
 }
 
 unsafe impl<T: Sync + Send> Send for Object<T> {}
@@ -82,6 +83,24 @@ impl<T> DerefMut for Object<T> {
     }
 }
 
+impl<T: PartialEq> PartialEq for Object<T> {
+
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        &*self.value == &*other.value
+    }
+}
+
+impl<T: Eq> Eq for Object<T> {}
+
+impl<T: Hash> Hash for Object<T> {
+
+    #[inline(always)]
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        (&*self.value).hash(state);
+    }
+}
+
 pub fn init_typ(typ_typ: Ptr<Object<Type>>, typ: Type) -> Ptr<Object<Type>> {
     Object::new(typ_typ, typ)
 }
@@ -94,9 +113,67 @@ pub fn init_typ_typ() -> Ptr<Object<Type>> {
     typ
 }
 
+pub fn init_list_typ() -> Ptr<Object<Type>> {
+    let mut typ = Object::new_null_typ(
+        TypeBuilder::new("Type").is_abstract().build()
+    );
+    typ.typ = typ;
+    typ
+}
+
 pub fn init_typs() {
-    let mut typ = unsafe {
-        init_typ_typ()
-    };
+    let mut typ = init_typ_typ();
     let mut any = init_typ(typ, TypeBuilder::new("Any").is_abstract().build());
+
+    typ.value.supr = Some(any);
+    any.value.supr = Some(any);
+
+    let list = init_typ(typ, TypeBuilder::new("List")
+        .supr(any)
+        .size(mem::size_of::<List<Ptr<Value>>>())
+        .build());
+
+    let symbol = init_typ(typ, TypeBuilder::new("Symbol")
+        .supr(any)
+        .size(mem::size_of::<String>())
+        .build());
+
+    let number = init_typ(typ, TypeBuilder::new("Number")
+        .supr(any).is_abstract().build());
+
+    let real = init_typ(typ, TypeBuilder::new("Real")
+        .supr(number).is_abstract().build());
+
+    let float = init_typ(typ, TypeBuilder::new("Float")
+        .supr(real).is_abstract().build());
+
+    let integer = init_typ(typ, TypeBuilder::new("Integer")
+        .supr(real).is_abstract().build());
+    let signed = init_typ(typ, TypeBuilder::new("Signed")
+        .supr(integer).is_abstract().build());
+    let unsigned = init_typ(typ, TypeBuilder::new("Unsigned")
+        .supr(integer).is_abstract().build());
+
+    let boolean = init_typ(typ, TypeBuilder::new("Boolean")
+        .supr(integer).size(mem::size_of::<bool>()).is_bits().build());
+    let chr = init_typ(typ, TypeBuilder::new("Char")
+        .supr(any).size(mem::size_of::<char>()).is_bits().build());
+
+    let int8 = init_typ(typ, TypeBuilder::new("Int8")
+        .supr(signed).size(mem::size_of::<i8>()).is_bits().build());
+    let int16 = init_typ(typ, TypeBuilder::new("Int16")
+        .supr(signed).size(mem::size_of::<i16>()).is_bits().build());
+    let int32 = init_typ(typ, TypeBuilder::new("Int32")
+        .supr(signed).size(mem::size_of::<i32>()).is_bits().build());
+    let int64 = init_typ(typ, TypeBuilder::new("Int64")
+        .supr(signed).size(mem::size_of::<i64>()).is_bits().build());
+
+    let uint8 = init_typ(typ, TypeBuilder::new("UInt8")
+        .supr(unsigned).size(mem::size_of::<u8>()).is_bits().build());
+    let uint16 = init_typ(typ, TypeBuilder::new("UInt16")
+        .supr(unsigned).size(mem::size_of::<u16>()).is_bits().build());
+    let uint32 = init_typ(typ, TypeBuilder::new("UInt32")
+        .supr(unsigned).size(mem::size_of::<u32>()).is_bits().build());
+    let uint64 = init_typ(typ, TypeBuilder::new("UInt64")
+        .supr(unsigned).size(mem::size_of::<u64>()).is_bits().build());
 }

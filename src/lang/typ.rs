@@ -5,22 +5,23 @@ use core::mem;
 
 use vector::Vector;
 
+use super::super::utils::Ptr;
 use super::value::Value;
 use super::object::Object;
 
 
 pub struct Type {
-    name: String,
+    pub(crate) name: String,
 
-    supr: Option<Object<Type>>,
+    pub(crate) supr: Option<Ptr<Object<Type>>>,
 
-    names: Option<Vector<String>>,
-    types: Option<Vector<Object<Type>>>,
+    pub(crate) names: Option<Vector<String>>,
+    pub(crate) types: Option<Vector<Ptr<Object<Type>>>>,
 
-    size: usize,
+    pub(crate) size: usize,
 
-    is_abstract: bool,
-    is_bits: bool,
+    pub(crate) is_abstract: bool,
+    pub(crate) is_bits: bool,
 }
 
 unsafe impl Send for Type {}
@@ -42,10 +43,10 @@ impl Type {
 pub struct TypeBuilder {
     name: String,
 
-    supr: Option<Object<Type>>,
+    supr: Option<Ptr<Object<Type>>>,
 
     names: Option<Vector<String>>,
-    types: Option<Vector<Object<Type>>>,
+    types: Option<Vector<Ptr<Object<Type>>>>,
 
     size: usize,
 
@@ -72,8 +73,8 @@ impl TypeBuilder {
     }
 
     #[inline]
-    pub fn supr(mut self, supr: Option<Object<Type>>) -> Self {
-        self.supr = supr;
+    pub fn supr(mut self, supr: Ptr<Object<Type>>) -> Self {
+        self.supr = Some(supr);
         self
     }
     #[inline]
@@ -82,7 +83,7 @@ impl TypeBuilder {
         self
     }
     #[inline]
-    pub fn types(mut self, types: Vector<Object<Type>>) -> Self {
+    pub fn types(mut self, types: Vector<Ptr<Object<Type>>>) -> Self {
         self.types = Some(types);
         self
     }

@@ -1,5 +1,5 @@
 use core::ops::{Deref, DerefMut};
-use core::ptr::Shared;
+use core::hash::{Hash, Hasher};
 
 
 pub struct Ptr<T: ?Sized> {
@@ -63,3 +63,25 @@ impl<T> Clone for Ptr<T> {
 }
 
 impl<T> Copy for Ptr<T> {}
+
+impl<T: PartialEq> PartialEq for Ptr<T> {
+
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        unsafe {
+            &*self.ptr == &*other.ptr
+        }
+    }
+}
+
+impl<T: Hash> Hash for Ptr<T> {
+
+    #[inline(always)]
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        unsafe {
+            (&*self.ptr).hash(state);
+        }
+    }
+}
+
+impl<T: Eq> Eq for Ptr<T> {}
