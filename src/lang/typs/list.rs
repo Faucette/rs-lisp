@@ -1,18 +1,19 @@
 use super::super::super::Ptr;
-use super::super::Object;
+use super::super::LIST;
+use super::super::{Value, Object};
 
 
-struct Node<T> {
-    next: Option<Ptr<Object<Node<T>>>>,
-    data: Ptr<Object<T>>,
+struct Node {
+    next: Option<Ptr<Object<Node>>>,
+    data: Ptr<Value>,
 }
 
-impl<T> Node<T> {
+impl Node {
 
     #[inline(always)]
     pub fn new(
-        next: Option<Ptr<Object<Node<T>>>>,
-        data: Ptr<Object<T>>
+        next: Option<Ptr<Object<Node>>>,
+        data: Ptr<Value>
     ) -> Self {
         Node {
             next: next,
@@ -22,13 +23,13 @@ impl<T> Node<T> {
 }
 
 
-pub struct List<T> {
-    root: Option<Ptr<Object<Node<T>>>>,
-    tail: Option<Ptr<Object<Node<T>>>>,
+pub struct List {
+    root: Option<Ptr<Object<Node>>>,
+    tail: Option<Ptr<Object<Node>>>,
     size: usize,
 }
 
-impl<T> List<T> {
+impl List {
 
     #[inline(always)]
     pub fn new() -> Self {
@@ -39,8 +40,12 @@ impl<T> List<T> {
         }
     }
 
+    pub fn constructor(args: Ptr<Object<List>>) -> Ptr<Value> {
+        Object::new(LIST, List::new())
+    }
+
     #[inline]
-    pub fn push(&self, data: Ptr<Object<T>>) -> Self {
+    pub fn push(&self, data: Ptr<Value>) -> Self {
         let new_node = Some(Object::new_null_typ(Node::new(self.root, data)));
         let mut new_list = List::new();
 
@@ -70,7 +75,7 @@ impl<T> List<T> {
     }
 
     #[inline]
-    pub fn peek(&self) -> Option<Ptr<Object<T>>> {
+    pub fn peek(&self) -> Option<Ptr<Value>> {
         match self.root {
             Some(root) => Some(root.data),
             None => None,

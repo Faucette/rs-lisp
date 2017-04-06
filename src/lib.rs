@@ -1,8 +1,7 @@
 #![feature(alloc)]
+#![feature(const_fn)]
 #![feature(collections)]
 #![feature(heap_api)]
-#![feature(core_intrinsics)]
-#![feature(shared)]
 #![feature(get_type_id)]
 //#![no_std]
 extern crate core;
@@ -20,12 +19,10 @@ extern crate vector;
 extern crate lexer;
 
 
-pub mod gc;
 pub mod lang;
 pub mod reader;
 pub mod utils;
 
 
-pub use self::gc::*;
 pub use self::lang::*;
 pub use self::utils::*;

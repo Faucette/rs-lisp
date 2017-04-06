@@ -1,6 +1,6 @@
 use alloc::heap;
 
-use core::mem;
+use core::{mem, ptr};
 use core::ops::{Deref, DerefMut};
 use core::hash::{Hash, Hasher};
 
@@ -18,6 +18,13 @@ impl<T> Ptr<T> {
     pub fn new(value: T) -> Self {
         Ptr {
             ptr: Box::into_raw(Box::new(value)),
+        }
+    }
+
+    #[inline(always)]
+    pub const fn null() -> Self {
+        Ptr {
+            ptr: ptr::null::<T>() as *mut T,
         }
     }
 

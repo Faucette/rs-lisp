@@ -1,13 +1,9 @@
-use alloc::boxed::Box;
 use collections::string::String;
-
-use core::mem;
 
 use vector::Vector;
 
 use super::super::Ptr;
 use super::Function;
-use super::Value;
 use super::Object;
 
 
@@ -18,7 +14,7 @@ pub struct Type {
 
     pub(crate) names: Option<Vector<String>>,
     pub(crate) types: Option<Vector<Ptr<Object<Type>>>>,
-    
+
     pub(crate) constructor: Option<Ptr<Function>>,
     pub(crate) destructor: Option<Ptr<Function>>,
 
@@ -51,7 +47,7 @@ pub struct TypeBuilder {
 
     names: Option<Vector<String>>,
     types: Option<Vector<Ptr<Object<Type>>>>,
-    
+
     constructor: Option<Ptr<Function>>,
     destructor: Option<Ptr<Function>>,
 
@@ -71,7 +67,7 @@ impl TypeBuilder {
 
             names: None,
             types: None,
-    
+
             constructor: None,
             destructor: None,
 
@@ -131,7 +127,7 @@ impl TypeBuilder {
 
             names: self.names,
             types: self.types,
-    
+
             constructor: self.constructor,
             destructor: self.destructor,
 

@@ -5,5 +5,13 @@ use super::List;
 
 
 pub trait Function {
-    fn call(&self, args: Ptr<Object<List<Ptr<Value>>>>) -> Ptr<Value>;
+    fn call(&self, args: Ptr<Object<List>>) -> Ptr<Value>;
+}
+
+impl Function for fn(args: Ptr<Object<List>>) -> Ptr<Value> {
+
+    #[inline(always)]
+    fn call(&self, args: Ptr<Object<List>>) -> Ptr<Value> {
+        (self)(args)
+    }
 }

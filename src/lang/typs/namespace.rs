@@ -9,7 +9,7 @@ use super::Symbol;
 
 pub struct Namespace {
     name: Ptr<Object<Symbol>>,
-    mappings: HashMap<Ptr<Object<Symbol>>, Ptr<Value>>,
+    mappings: HashMap<String, Ptr<Value>>,
 }
 
 impl Namespace {
@@ -23,12 +23,27 @@ impl Namespace {
     }
 
     #[inline(always)]
+    pub fn name(&self) -> Ptr<Object<Symbol>> {
+        self.name
+    }
+
+    #[inline(always)]
     pub fn set(&mut self, symbol: Ptr<Object<Symbol>>, value: Ptr<Value>) {
-        self.mappings.insert(symbol, value);
+        self.mappings.insert((**symbol).clone(), value);
+    }
+
+    #[inline(always)]
+    pub fn get(&mut self, symbol: Ptr<Object<Symbol>>) -> Option<&Ptr<Value>> {
+        self.get_by_str(&**symbol)
+    }
+
+    #[inline(always)]
+    pub fn get_by_str(&mut self, symbol: &str) -> Option<&Ptr<Value>> {
+        self.mappings.get(symbol)
     }
 
     #[inline(always)]
     pub fn remove(&mut self, symbol: Ptr<Object<Symbol>>) {
-        self.mappings.remove(&symbol);
+        self.mappings.remove(&**symbol);
     }
 }
