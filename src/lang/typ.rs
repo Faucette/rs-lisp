@@ -3,8 +3,8 @@ use collections::string::String;
 use vector::Vector;
 
 use super::super::Ptr;
-use super::Function;
-use super::Object;
+use super::{List, Function};
+use super::{Object, Value};
 
 
 pub struct Type {
@@ -106,6 +106,20 @@ impl TypeBuilder {
     #[inline]
     pub fn destructor(mut self, destructor: Ptr<Function>) -> Self {
         self.destructor = Some(destructor);
+        self
+    }
+    #[inline]
+    pub fn constructor_raw(mut self, constructor: fn(_args: Ptr<Object<List>>) -> Ptr<Value>) -> Self {
+        self.constructor = Some(unsafe {
+            Ptr::from_ptr(constructor as *mut fn(_args: Ptr<Object<List>>) -> Ptr<Value>)
+        });
+        self
+    }
+    #[inline]
+    pub fn destructor_raw(mut self, destructor: fn(_args: Ptr<Object<List>>) -> Ptr<Value>) -> Self {
+        self.destructor = Some(unsafe {
+            Ptr::from_ptr(destructor as *mut fn(_args: Ptr<Object<List>>) -> Ptr<Value>)
+        });
         self
     }
     #[inline]

@@ -10,12 +10,13 @@ pub type TokenMeta = lexer::TokenMeta;
 pub enum TokenKind {
     WHITESPACE,
     COMMENT,
-    
+
     IDENTIFIER,
 
     L_PAREN,
     R_PAREN,
 
+    NIL,
     BOOL,
     NUMBER,
     STRING,

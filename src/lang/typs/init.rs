@@ -3,11 +3,14 @@ use core::mem;
 use super::super::super::Ptr;
 use super::super::{Type, TypeBuilder};
 use super::super::{Value, Object};
-use super::{List, Function};
+use super::constructors;
+use super::List;
 
 
 pub static mut ANY: Ptr<Object<Type>> = Ptr::null();
 pub static mut TYP: Ptr<Object<Type>> = Ptr::null();
+
+pub static mut NIL: Ptr<Object<Type>> = Ptr::null();
 
 pub static mut LIST: Ptr<Object<Type>> = Ptr::null();
 pub static mut SYMBOL: Ptr<Object<Type>> = Ptr::null();
@@ -41,14 +44,18 @@ pub unsafe fn init() {
         TypeBuilder::new("Type").is_abstract().build()
     );
     TYP.typ = TYP;
-    ANY = Object::new(TYP, TypeBuilder::new("Any").is_abstract().build());
-
     TYP.value.supr = Some(ANY);
+
+    ANY = Object::new(TYP, TypeBuilder::new("Any").is_abstract().build());
     ANY.value.supr = Some(ANY);
+
+    NIL = Object::new(TYP, TypeBuilder::new("Nil")
+        .constructor_raw(constructors::nil)
+        .supr(ANY).build());
 
     LIST = Object::new(TYP, TypeBuilder::new("List")
         .supr(ANY)
-        //.constructor(Ptr::new(List::constructor))
+        .constructor_raw(List::constructor)
         .size(mem::size_of::<List>())
         .build());
 

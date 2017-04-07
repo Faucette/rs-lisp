@@ -1,11 +1,9 @@
-use collections::string::String;
-
 use core::mem;
 use core::ops::{Deref, DerefMut};
 use core::hash::{Hash, Hasher};
 
 use super::super::Ptr;
-use super::{Type, TypeBuilder};
+use super::Type;
 use super::Value;
 use super::List;
 use super::Function;
@@ -38,6 +36,16 @@ impl<T> Object<T> {
             },
             value: value,
         })
+    }
+}
+
+impl<T: Send + Sync + 'static> Ptr<Object<T>> {
+
+    #[inline(always)]
+    pub fn as_value(&self) -> Ptr<Value> {
+        unsafe {
+            Ptr::from_ptr(self.as_ptr() as *mut Value)
+        }
     }
 }
 

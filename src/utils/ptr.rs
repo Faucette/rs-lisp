@@ -1,6 +1,4 @@
-use alloc::heap;
-
-use core::{mem, ptr};
+use core::ptr;
 use core::ops::{Deref, DerefMut};
 use core::hash::{Hash, Hasher};
 
@@ -27,6 +25,9 @@ impl<T> Ptr<T> {
             ptr: ptr::null::<T>() as *mut T,
         }
     }
+}
+
+impl<T: ?Sized> Ptr<T> {
 
     #[inline(always)]
     pub unsafe fn from_ptr(value: *mut T) -> Self {
@@ -41,7 +42,7 @@ impl<T> Ptr<T> {
     }
 }
 
-impl<T> Deref for Ptr<T> {
+impl<T: ?Sized> Deref for Ptr<T> {
     type Target = T;
 
     #[inline(always)]
@@ -52,7 +53,7 @@ impl<T> Deref for Ptr<T> {
     }
 }
 
-impl<T> DerefMut for Ptr<T> {
+impl<T: ?Sized> DerefMut for Ptr<T> {
 
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut T {
@@ -62,7 +63,7 @@ impl<T> DerefMut for Ptr<T> {
     }
 }
 
-impl<T> Clone for Ptr<T> {
+impl<T: ?Sized> Clone for Ptr<T> {
 
     #[inline(always)]
     fn clone(&self) -> Self {
@@ -72,9 +73,9 @@ impl<T> Clone for Ptr<T> {
     }
 }
 
-impl<T> Copy for Ptr<T> {}
+impl<T: ?Sized> Copy for Ptr<T> {}
 
-impl<T: PartialEq> PartialEq for Ptr<T> {
+impl<T: ?Sized + PartialEq> PartialEq for Ptr<T> {
 
     #[inline(always)]
     fn eq(&self, other: &Self) -> bool {
@@ -84,7 +85,7 @@ impl<T: PartialEq> PartialEq for Ptr<T> {
     }
 }
 
-impl<T: Hash> Hash for Ptr<T> {
+impl<T: ?Sized + Hash> Hash for Ptr<T> {
 
     #[inline(always)]
     fn hash<H: Hasher>(&self, state: &mut H) {
@@ -94,4 +95,4 @@ impl<T: Hash> Hash for Ptr<T> {
     }
 }
 
-impl<T: Eq> Eq for Ptr<T> {}
+impl<T: ?Sized + Eq> Eq for Ptr<T> {}

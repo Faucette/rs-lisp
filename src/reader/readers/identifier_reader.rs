@@ -1,6 +1,7 @@
 use lexer::{Input, State, Reader, TokenMeta};
 
 use super::super::token::{Token, TokenKind};
+use super::super::utils;
 
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
@@ -14,7 +15,7 @@ impl Reader<TokenKind> for IdentifierReader {
     fn read(&self, input: &Input, current: &State, next: &mut State) -> Option<Token> {
         let ch = input.read(next);
 
-        if ch.is_alphabetic() {
+        if !utils::is_whitespace(ch) {
             let mut string = String::new();
 
             string.push(ch);
@@ -22,7 +23,7 @@ impl Reader<TokenKind> for IdentifierReader {
             while !input.done(next) {
                 let ch = input.peek(next, 0);
 
-                if ch.is_alphanumeric() {
+                if !utils::is_whitespace(ch) {
                     input.read(next);
                     string.push(ch);
                 } else {
@@ -34,6 +35,7 @@ impl Reader<TokenKind> for IdentifierReader {
             let kind = match string.as_ref() {
                 "true" => TokenKind::BOOL,
                 "false" => TokenKind::BOOL,
+                "nil" => TokenKind::NIL,
                 _ => TokenKind::IDENTIFIER,
             };
 

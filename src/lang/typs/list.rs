@@ -1,5 +1,5 @@
 use super::super::super::Ptr;
-use super::super::LIST;
+use super::super::{LIST, UINT64};
 use super::super::{Value, Object};
 
 
@@ -26,8 +26,11 @@ impl Node {
 pub struct List {
     root: Option<Ptr<Object<Node>>>,
     tail: Option<Ptr<Object<Node>>>,
-    size: usize,
+    size: Ptr<Object<usize>>,
 }
+
+unsafe impl Send for List {}
+unsafe impl Sync for List {}
 
 impl List {
 
@@ -36,12 +39,18 @@ impl List {
         List {
             root: None,
             tail: None,
-            size: 0usize,
+            size: Object::new(unsafe {UINT64}, 0usize),
         }
     }
 
-    pub fn constructor(args: Ptr<Object<List>>) -> Ptr<Value> {
-        Object::new(LIST, List::new())
+    #[inline(always)]
+    pub fn constructor(_args: Ptr<Object<List>>) -> Ptr<Value> {
+        Object::new(unsafe {LIST}, List::new()).as_value()
+    }
+
+    #[inline(always)]
+    pub fn size(&self) -> Ptr<Object<usize>> {
+        self.size
     }
 
     #[inline]
@@ -56,7 +65,7 @@ impl List {
         }
 
         new_list.root = new_node;
-        new_list.size = self.size + 1;
+        new_list.size = Object::new(unsafe {UINT64}, (**self.size) + 1);
 
         new_list
     }
@@ -64,11 +73,12 @@ impl List {
     #[inline]
     pub fn pop(&self) -> Self {
         let mut new_list = List::new();
+        let size = **self.size;
 
-        if self.size > 1 {
+        if size > 1 {
             new_list.root = self.root.unwrap().next;
             new_list.tail = self.tail;
-            new_list.size = self.size - 1;
+            new_list.size = Object::new(unsafe {UINT64}, size - 1);
         }
 
         new_list
@@ -77,7 +87,7 @@ impl List {
     #[inline]
     pub fn peek(&self) -> Option<Ptr<Value>> {
         match self.root {
-            Some(root) => Some(root.data),
+            Some(ref root) => Some(root.data),
             None => None,
         }
     }

@@ -1,6 +1,5 @@
 use lexer::{Input, State, Reader, TokenMeta};
 
-use super::super::utils;
 use super::super::token::{Token, TokenKind};
 
 
