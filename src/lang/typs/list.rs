@@ -1,7 +1,7 @@
 use super::super::super::utils::Ptr;
-use super::super::{LIST, UINT64};
 use super::super::value::Value;
 use super::super::object::Object;
+use super::builtins::{LIST, UINT64};
 
 
 struct Node {

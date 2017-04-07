@@ -20,7 +20,6 @@ extern crate lexer;
 
 
 pub mod lang;
-pub mod reader;
 pub mod utils;
 
 

@@ -1,16 +1,19 @@
 use core::mem;
 
 use super::super::super::Ptr;
-use super::super::{Type, TypeBuilder};
-use super::super::{Value, Object};
+use super::super::typ::{Type, TypeBuilder};
+use super::super::value::Value;
+use super::super::object::Object;
 use super::constructors;
-use super::List;
+use super::list::List;
 
 
 pub static mut ANY: Ptr<Object<Type>> = Ptr::null();
 pub static mut TYP: Ptr<Object<Type>> = Ptr::null();
 
 pub static mut NIL: Ptr<Object<Type>> = Ptr::null();
+
+pub static mut READER: Ptr<Object<Type>> = Ptr::null();
 
 pub static mut LIST: Ptr<Object<Type>> = Ptr::null();
 pub static mut SYMBOL: Ptr<Object<Type>> = Ptr::null();
@@ -39,7 +42,7 @@ pub static mut FLOAT32: Ptr<Object<Type>> = Ptr::null();
 pub static mut FLOAT64: Ptr<Object<Type>> = Ptr::null();
 
 
-pub unsafe fn init() {
+pub unsafe fn init_builtins() {
     TYP = Object::new_null_typ(
         TypeBuilder::new("Type").is_abstract().build()
     );
@@ -51,6 +54,9 @@ pub unsafe fn init() {
 
     NIL = Object::new(TYP, TypeBuilder::new("Nil")
         .constructor_raw(constructors::nil)
+        .supr(ANY).build());
+
+    READER = Object::new(TYP, TypeBuilder::new("Reader")
         .supr(ANY).build());
 
     LIST = Object::new(TYP, TypeBuilder::new("List")

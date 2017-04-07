@@ -1,7 +1,7 @@
 use super::super::super::utils::Ptr;
 use super::super::value::Value;
 use super::super::object::Object;
-use super::List;
+use super::list::List;
 
 
 pub trait Function {
