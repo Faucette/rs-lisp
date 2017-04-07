@@ -1,6 +1,6 @@
-use super::super::super::Ptr;
-use super::super::Value;
-use super::super::Object;
+use super::super::super::utils::Ptr;
+use super::super::value::Value;
+use super::super::object::Object;
 use super::List;
 
 

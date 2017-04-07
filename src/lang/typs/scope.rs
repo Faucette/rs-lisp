@@ -1,29 +1,29 @@
 use collection_traits::*;
 use hash_map::HashMap;
 
-use super::super::super::Ptr;
-use super::super::Object;
-use super::super::Value;
-use super::Symbol;
+use super::super::super::utils::Ptr;
+use super::super::object::Object;
+use super::super::value::Value;
+use super::symbol::Symbol;
 
 
-pub struct Namespace {
-    name: Ptr<Object<Symbol>>,
+pub struct Scope {
+    name: Option<Ptr<Object<Symbol>>>,
     mappings: HashMap<String, Ptr<Value>>,
 }
 
-impl Namespace {
+impl Scope {
 
     #[inline(always)]
-    pub fn new(name: Ptr<Object<Symbol>>) -> Self {
-        Namespace {
+    pub fn new(name: Option<Ptr<Object<Symbol>>>) -> Self {
+        Scope {
             name: name,
             mappings: HashMap::new(),
         }
     }
 
     #[inline(always)]
-    pub fn name(&self) -> Ptr<Object<Symbol>> {
+    pub fn name(&self) -> Option<Ptr<Object<Symbol>>> {
         self.name
     }
 

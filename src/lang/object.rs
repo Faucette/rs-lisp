@@ -2,11 +2,10 @@ use core::mem;
 use core::ops::{Deref, DerefMut};
 use core::hash::{Hash, Hasher};
 
-use super::super::Ptr;
-use super::Type;
-use super::Value;
-use super::List;
-use super::Function;
+use super::super::utils::Ptr;
+use super::typ::Type;
+use super::value::Value;
+use super::typs::{List, Function};
 
 
 #[derive(Clone)]

@@ -1,10 +1,8 @@
-use super::super::super::Ptr;
-use super::super::NIL;
-use super::super::List;
-use super::super::{Value, Object};
-
-
-pub struct Nil;
+use super::super::super::utils::Ptr;
+use super::super::{NIL};
+use super::super::{List, Nil};
+use super::super::value::Value;
+use super::super::object::Object;
 
 
 #[inline(always)]

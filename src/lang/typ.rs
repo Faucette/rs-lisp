@@ -2,9 +2,10 @@ use collections::string::String;
 
 use vector::Vector;
 
-use super::super::Ptr;
-use super::{List, Function};
-use super::{Object, Value};
+use super::super::utils::Ptr;
+use super::typs::{List, Function};
+use super::object::Object;
+use super::value::Value;
 
 
 pub struct Type {

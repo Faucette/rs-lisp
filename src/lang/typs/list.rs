@@ -1,6 +1,7 @@
-use super::super::super::Ptr;
+use super::super::super::utils::Ptr;
 use super::super::{LIST, UINT64};
-use super::super::{Value, Object};
+use super::super::value::Value;
+use super::super::object::Object;
 
 
 struct Node {

@@ -1,7 +1,8 @@
 use core::any::Any;
 
-use super::super::Ptr;
-use super::{Object, Type};
+use super::super::utils::Ptr;
+use super::typ::Type;
+use super::object::Object;
 
 
 pub trait Value: Any + Send + Sync {

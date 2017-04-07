@@ -26,9 +26,13 @@
 (StructName -1 1)
 
 (mod name (
-  ;; introduces new sub namespace
+  ;; introduces new sub scope
 ))
 
 ;; let
 (let (a U8, b Char, c Bool) (256, 'c', true)
   (= a, b, c))
+
+(def add
+  [a Any, b Number]
+  (+ a, b)
