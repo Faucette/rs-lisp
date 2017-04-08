@@ -2,31 +2,50 @@ extern crate lisp;
 
 
 use lisp::lang::*;
-use lisp::utils::*;
+use lisp::Context;
 
 
 fn main() {
-    unsafe {
-        init_typs();
-    }
-    let input = "(+ a, b, :keyword, symbol)";
-    let mut reader = Reader::new(input.chars().collect());
-    let ast: Vec<Ptr<Value>> = reader.collect();
+    let context = Context::new();
+    let input = "(+ :keyword, symbol, 1, -1, 1.0)".chars().collect();
+    let mut reader = context.gc.new_object(context.ReaderType, Reader::new(input));
+    let mut values = reader.collect(&context);
 
-    for value in ast {
-        if value.typ() == unsafe {LIST} {
+    while !(values.is_empty(&context).value()) {
+        let value = values.first(&context);
+        values = values.pop(&context);
+
+        if value.typ() == context.ListType {
             let mut list = value.downcast::<Object<List>>().unwrap();
 
-            while !(**list.is_empty()) {
-                let v = list.peek();
-                list = list.pop();
+            while !(list.is_empty(&context).value()) {
+                let value = list.peek(&context);
+                list = list.pop(&context);
 
-                if v.typ() == unsafe {SYMBOL} {
-                    println!("{:?}", v.downcast::<Object<Symbol>>().unwrap());
-                } else if v.typ() == unsafe {KEYWORD} {
-                    println!("{:?}", v.downcast::<Object<Keyword>>().unwrap());
+                if value.typ() == context.SymbolType {
+
+                    println!("{:?}", value.downcast::<Object<Symbol>>().unwrap());
+
+                } else if value.typ() == context.KeywordType {
+
+                    println!("{:?}", value.downcast::<Object<Keyword>>().unwrap());
+
+                } else if value.typ() == context.Float64Type {
+
+                    println!("{:?}", value.downcast::<Object<f64>>().unwrap());
+
+                }  else if value.typ() == context.Int64Type {
+
+                    println!("{:?}", value.downcast::<Object<isize>>().unwrap());
+
+                } else if value.typ() == context.UInt64Type {
+
+                    println!("{:?}", value.downcast::<Object<usize>>().unwrap());
+
                 }
             }
         }
     }
+
+    println!("Totel: {:?} bytes", context.gc.total());
 }

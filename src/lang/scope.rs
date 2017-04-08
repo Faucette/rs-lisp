@@ -1,10 +1,13 @@
+use collections::string::String;
+
 use collection_traits::*;
 use hash_map::HashMap;
 
-use super::super::super::utils::Ptr;
-use super::super::object::Object;
-use super::super::value::Value;
-use super::primitives::Symbol;
+use ::Ptr;
+
+use super::object::Object;
+use super::value::Value;
+use super::symbol::Symbol;
 
 
 pub struct Scope {

@@ -1,3 +1,5 @@
+use alloc::boxed::Box;
+
 use core::{fmt, ptr};
 use core::ops::{Deref, DerefMut};
 use core::hash::{Hash, Hasher};

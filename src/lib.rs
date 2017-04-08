@@ -3,8 +3,7 @@
 #![feature(collections)]
 #![feature(heap_api)]
 #![feature(get_type_id)]
-//#![no_std]
-extern crate core;
+#![no_std]
 
 
 extern crate alloc;
@@ -17,9 +16,13 @@ extern crate vector;
 extern crate lexer;
 
 
+pub mod gc;
 pub mod lang;
-pub mod utils;
+pub mod context;
+pub mod ptr;
 
 
+pub use self::gc::*;
 pub use self::lang::*;
-pub use self::utils::*;
+pub use self::context::Context;
+pub use self::ptr::Ptr;

@@ -2,30 +2,47 @@ extern crate lisp;
 
 
 use lisp::lang::*;
-use lisp::utils::*;
+use lisp::Context;
 
 
 #[test]
 fn test_runtime() {
-    unsafe {
-        init_typs();
-    }
-    let input = "(+ a, b, :keyword, symbol)";
-    let mut reader = Reader::new(input.chars().collect());
-    let ast: Vec<Ptr<Value>> = reader.collect();
+    let context = Context::new();
+    let input = "(+ :keyword, symbol, 1, -1, 1.0)".chars().collect();
+    let mut reader = context.gc.new_object(context.ReaderType, Reader::new(input));
+    let mut values = reader.collect(&context);
 
-    for value in ast {
-        if value.typ() == unsafe {LIST} {
+    while !(values.is_empty(&context).value()) {
+        let value = values.first(&context);
+        values = values.pop(&context);
+
+        if value.typ() == context.ListType {
             let mut list = value.downcast::<Object<List>>().unwrap();
 
-            while !(**list.is_empty()) {
-                let v = list.peek();
-                list = list.pop();
+            while !(list.is_empty(&context).value()) {
+                let value = list.peek(&context);
+                list = list.pop(&context);
 
-                if v.typ() == unsafe {SYMBOL} {
-                    assert!(v.downcast::<Object<Symbol>>().is_some());
-                } else if v.typ() == unsafe {KEYWORD} {
-                    assert!(v.downcast::<Object<Keyword>>().is_some());
+                if value.typ() == context.SymbolType {
+
+                    assert!(value.downcast::<Object<Symbol>>().is_some());
+
+                } else if value.typ() == context.KeywordType {
+
+                    assert!(value.downcast::<Object<Keyword>>().is_some());
+
+                } else if value.typ() == context.Float64Type {
+
+                    assert!(value.downcast::<Object<f64>>().is_some());
+
+                }  else if value.typ() == context.Int64Type {
+
+                    assert!(value.downcast::<Object<isize>>().is_some());
+
+                } else if value.typ() == context.UInt64Type {
+
+                    assert!(value.downcast::<Object<usize>>().is_some());
+
                 }
             }
         }

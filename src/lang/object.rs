@@ -1,11 +1,9 @@
-use core::{fmt, mem};
+use core::fmt;
 use core::ops::{Deref, DerefMut};
 use core::hash::{Hash, Hasher};
 
-use super::super::utils::Ptr;
-use super::typ::Type;
-use super::value::Value;
-use super::typs::{List, Function};
+use ::Ptr;
+use ::lang::{Value, Type};
 
 
 #[derive(Clone)]
@@ -20,25 +18,20 @@ unsafe impl<T: Send + Sync> Sync for Object<T> {}
 impl<T> Object<T> {
 
     #[inline(always)]
-    pub fn new(typ: Ptr<Object<Type>>, value: T) -> Ptr<Self> {
-        Ptr::new(Object {
+    pub fn new(typ: Ptr<Object<Type>>, value: T) -> Self {
+        Object {
             typ: typ,
             value: value,
-        })
+        }
     }
 
     #[inline(always)]
-    pub(crate) fn new_null_typ(value: T) -> Ptr<Self> {
-        Ptr::new(Object {
-            typ: unsafe {
-                mem::uninitialized()
-            },
-            value: value,
-        })
+    pub fn value(&self) -> &T {
+        &self.value
     }
 }
 
-impl<T: Send + Sync + 'static> Ptr<Object<T>> {
+impl<T: 'static> Ptr<Object<T>> {
 
     #[inline(always)]
     pub fn as_value(&self) -> Ptr<Value> {
@@ -48,26 +41,11 @@ impl<T: Send + Sync + 'static> Ptr<Object<T>> {
     }
 }
 
-impl<T: 'static + Send + Sync> Value for Object<T> {
+impl<T: 'static> Value for Object<T> {
 
     #[inline(always)]
     fn typ(&self) -> Ptr<Object<Type>> {
         self.typ
-    }
-}
-impl<T: 'static + Send + Sync> Value for Ptr<Object<T>> {
-
-    #[inline(always)]
-    fn typ(&self) -> Ptr<Object<Type>> {
-        self.typ()
-    }
-}
-
-impl<T: Function> Function for Object<T> {
-
-    #[inline(always)]
-    fn call(&self, args: Ptr<Object<List>>) -> Ptr<Value> {
-        self.value.call(args)
     }
 }
 

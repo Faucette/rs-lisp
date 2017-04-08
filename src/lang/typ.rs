@@ -4,10 +4,10 @@ use core::{fmt, ptr};
 
 use vector::Vector;
 
-use super::super::utils::Ptr;
-use super::typs::{List, Function};
+use ::Ptr;
+
+use super::function::Function;
 use super::object::Object;
-use super::value::Value;
 
 
 pub struct Type {
@@ -15,7 +15,7 @@ pub struct Type {
 
     pub(crate) supr: Option<Ptr<Object<Type>>>,
 
-    pub(crate) names: Option<Vector<String>>,
+    pub(crate) fields: Option<Vector<String>>,
     pub(crate) types: Option<Vector<Ptr<Object<Type>>>>,
 
     pub(crate) constructor: Option<Ptr<Function>>,
@@ -61,7 +61,7 @@ pub struct TypeBuilder {
 
     supr: Option<Ptr<Object<Type>>>,
 
-    names: Option<Vector<String>>,
+    fields: Option<Vector<String>>,
     types: Option<Vector<Ptr<Object<Type>>>>,
 
     constructor: Option<Ptr<Function>>,
@@ -81,7 +81,7 @@ impl TypeBuilder {
 
             supr: None,
 
-            names: None,
+            fields: None,
             types: None,
 
             constructor: None,
@@ -100,8 +100,8 @@ impl TypeBuilder {
         self
     }
     #[inline]
-    pub fn names(mut self, names: Vector<String>) -> Self {
-        self.names = Some(names);
+    pub fn fields(mut self, fields: Vector<String>) -> Self {
+        self.fields = Some(fields);
         self
     }
     #[inline]
@@ -124,6 +124,7 @@ impl TypeBuilder {
         self.destructor = Some(destructor);
         self
     }
+    /*
     #[inline]
     pub fn constructor_raw(mut self, constructor: fn(Ptr<Object<List>>) -> Ptr<Value>) -> Self {
         self.constructor = Some(Function::new(constructor));
@@ -134,6 +135,7 @@ impl TypeBuilder {
         self.destructor = Some(Function::new(destructor));
         self
     }
+    */
     #[inline]
     pub fn is_abstract(mut self) -> Self {
         self.is_abstract = true;
@@ -151,7 +153,7 @@ impl TypeBuilder {
 
             supr: self.supr,
 
-            names: self.names,
+            fields: self.fields,
             types: self.types,
 
             constructor: self.constructor,
