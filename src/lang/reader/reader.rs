@@ -3,7 +3,7 @@ use vector::Vector;
 
 use ::Ptr;
 use ::Context;
-use ::lang::{Object, Function, List};
+use ::lang::{Value, Object, Callable, Function, List};
 
 use super::list_reader::list_reader;
 use super::symbol_reader::symbol_reader;
@@ -12,7 +12,7 @@ use super::number_reader::number_reader;
 
 
 pub struct Reader {
-    readers: Vector<Ptr<Function>>,
+    readers: Vector<Ptr<Object<Function>>>,
     input: Vector<char>,
     index: usize,
     row: u64,
@@ -25,13 +25,20 @@ unsafe impl Sync for Reader {}
 impl Reader {
 
     #[inline]
-    pub fn new(input: Vector<char>) -> Self {
+    pub fn new(context: &Context, input: Vector<char>) -> Self {
         let mut readers = Vector::new();
 
-        readers.push(Function::new(list_reader));
-        readers.push(Function::new(whitespace_reader));
-        readers.push(Function::new(number_reader));
-        readers.push(Function::new(symbol_reader));
+        readers.push(context.gc.new_object(context.FunctionType,
+            Function::new_rust(whitespace_reader as fn(&Context, Ptr<Object<List>>) -> Ptr<Value>)));
+
+        readers.push(context.gc.new_object(context.FunctionType,
+            Function::new_rust(list_reader as fn(&Context, Ptr<Object<List>>) -> Ptr<Value>)));
+
+        readers.push(context.gc.new_object(context.FunctionType,
+            Function::new_rust(number_reader as fn(&Context, Ptr<Object<List>>) -> Ptr<Value>)));
+
+        readers.push(context.gc.new_object(context.FunctionType,
+            Function::new_rust(symbol_reader as fn(&Context, Ptr<Object<List>>) -> Ptr<Value>)));
 
         Reader {
             readers: readers,

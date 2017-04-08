@@ -2,15 +2,18 @@ extern crate lisp;
 
 
 use lisp::lang::*;
-use lisp::Context;
+use lisp::{eval, Context};
 
 
 #[test]
 fn test_runtime() {
     let context = Context::new();
     let input = "(+ :keyword, symbol, 1, -1, 1.0)".chars().collect();
-    let mut reader = context.gc.new_object(context.ReaderType, Reader::new(input));
+    let mut reader = context.gc.new_object(context.ReaderType, Reader::new(&context, input));
     let mut values = reader.collect(&context);
+
+    let scope = context.gc.new_object(context.ScopeType, Scope::new(None, None));
+    let output = eval(&context, scope, values.first(&context));
 
     while !(values.is_empty(&context).value()) {
         let value = values.first(&context);

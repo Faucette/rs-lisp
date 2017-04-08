@@ -1,52 +1,29 @@
-use alloc::boxed::Box;
+use ::{Context, Ptr};
 
-use ::Ptr;
-use ::Context;
-
-use super::value::Value;
 use super::object::Object;
+use super::value::Value;
 use super::list::List;
+use super::callable::Callable;
 
 
-pub trait Function {
-    fn call(&self, &Context, Ptr<Object<List>>) -> Ptr<Value>;
+pub enum Function {
+    Rust(fn(&Context, Ptr<Object<List>>) -> Ptr<Value>),
 }
 
 impl Function {
-    pub fn new(function: fn(&Context, Ptr<Object<List>>) -> Ptr<Value>) -> Ptr<Function> {
-        unsafe {
-            Ptr::from_ptr(Box::into_raw(Box::new(RustFunciton::new(function))))
-        }
+
+    #[inline(always)]
+    pub fn new_rust(fn_ptr: fn(&Context, Ptr<Object<List>>) -> Ptr<Value>) -> Self {
+        Function::Rust(fn_ptr)
     }
 }
 
+impl Callable for Function {
 
-impl Function for fn(&Context, Ptr<Object<List>>) -> Ptr<Value> {
-
-    #[inline(always)]
+    #[inline]
     fn call(&self, context: &Context, args: Ptr<Object<List>>) -> Ptr<Value> {
-        (self)(context, args)
-    }
-}
-
-
-struct RustFunciton {
-    function: fn(&Context, Ptr<Object<List>>) -> Ptr<Value>,
-}
-
-impl RustFunciton {
-
-    #[inline(always)]
-    fn new(function: fn(&Context, Ptr<Object<List>>) -> Ptr<Value>) -> Self {
-        RustFunciton {
-            function: function,
+        match self {
+            &Function::Rust(ref fn_ptr) => Callable::call(fn_ptr, context, args),
         }
-    }
-}
-
-impl Function for RustFunciton {
-    #[inline(always)]
-    fn call(&self, context: &Context, args: Ptr<Object<List>>) -> Ptr<Value> {
-        Function::call(&self.function, context, args)
     }
 }

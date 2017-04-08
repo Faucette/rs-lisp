@@ -7,7 +7,7 @@ use hash_map::HashMap;
 
 use ::Ptr;
 use ::Gc;
-use ::lang::{Object, Symbol, Scope, List, Type, TypeBuilder};
+use ::lang::{Object, Symbol, Scope, List, Function, Reader, Type, TypeBuilder};
 
 
 #[allow(non_snake_case)]
@@ -16,7 +16,7 @@ pub struct Context {
     pub TypeType: Ptr<Object<Type>>,
 
     pub ScopeType: Ptr<Object<Type>>,
-
+    pub FunctionType: Ptr<Object<Type>>,
     pub NilType: Ptr<Object<Type>>,
 
     pub ReaderType: Ptr<Object<Type>>,
@@ -72,12 +72,16 @@ impl Context {
         TypeType.value.supr = Some(AnyType);
 
         let ScopeType = gc.new_object(TypeType, TypeBuilder::new("Scope")
+            .size(mem::size_of::<Scope>())
             .supr(AnyType).build());
-
+        let FunctionType = gc.new_object(TypeType, TypeBuilder::new("Function")
+            .size(mem::size_of::<Function>())
+            .supr(AnyType).build());
         let NilType = gc.new_object(TypeType, TypeBuilder::new("Nil")
             .supr(AnyType).build());
 
         let ReaderType = gc.new_object(TypeType, TypeBuilder::new("Reader")
+            .size(mem::size_of::<Reader>())
             .supr(AnyType).build());
 
         let ListType = gc.new_object(TypeType, TypeBuilder::new("List")
@@ -153,7 +157,7 @@ impl Context {
             TypeType: TypeType,
 
             ScopeType: ScopeType,
-
+            FunctionType: FunctionType,
             NilType: NilType,
 
             ReaderType: ReaderType,

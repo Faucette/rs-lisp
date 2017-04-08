@@ -2,14 +2,19 @@ extern crate lisp;
 
 
 use lisp::lang::*;
-use lisp::Context;
+use lisp::{eval, Context};
 
 
 fn main() {
     let context = Context::new();
     let input = "(+ :keyword, symbol, 1, -1, 1.0)".chars().collect();
-    let mut reader = context.gc.new_object(context.ReaderType, Reader::new(input));
+    let mut reader = context.gc.new_object(context.ReaderType, Reader::new(&context, input));
     let mut values = reader.collect(&context);
+
+    let scope = context.gc.new_object(context.ScopeType, Scope::new(None, None));
+    let output = eval(&context, scope, values.first(&context));
+
+    println!("Eval {:?}", output.typ());
 
     while !(values.is_empty(&context).value()) {
         let value = values.first(&context);
@@ -24,23 +29,23 @@ fn main() {
 
                 if value.typ() == context.SymbolType {
 
-                    println!("{:?}", value.downcast::<Object<Symbol>>().unwrap());
+                    println!("{:?} {:?}", value.downcast::<Object<Symbol>>().unwrap(), value.typ());
 
                 } else if value.typ() == context.KeywordType {
 
-                    println!("{:?}", value.downcast::<Object<Keyword>>().unwrap());
+                    println!("{:?} {:?}", value.downcast::<Object<Keyword>>().unwrap(), value.typ());
 
                 } else if value.typ() == context.Float64Type {
 
-                    println!("{:?}", value.downcast::<Object<f64>>().unwrap());
+                    println!("{:?} {:?}", value.downcast::<Object<f64>>().unwrap(), value.typ());
 
                 }  else if value.typ() == context.Int64Type {
 
-                    println!("{:?}", value.downcast::<Object<isize>>().unwrap());
+                    println!("{:?} {:?}", value.downcast::<Object<isize>>().unwrap(), value.typ());
 
                 } else if value.typ() == context.UInt64Type {
 
-                    println!("{:?}", value.downcast::<Object<usize>>().unwrap());
+                    println!("{:?} {:?}", value.downcast::<Object<usize>>().unwrap(), value.typ());
 
                 }
             }

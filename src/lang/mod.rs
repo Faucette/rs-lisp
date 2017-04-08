@@ -1,4 +1,5 @@
 mod reader;
+mod callable;
 mod function;
 mod keyword;
 mod list;
@@ -11,6 +12,7 @@ mod value;
 
 
 pub use self::reader::Reader;
+pub use self::callable::Callable;
 pub use self::function::Function;
 pub use self::keyword::Keyword;
 pub use self::list::List;

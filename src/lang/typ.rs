@@ -18,8 +18,8 @@ pub struct Type {
     pub(crate) fields: Option<Vector<String>>,
     pub(crate) types: Option<Vector<Ptr<Object<Type>>>>,
 
-    pub(crate) constructor: Option<Ptr<Function>>,
-    pub(crate) destructor: Option<Ptr<Function>>,
+    pub(crate) constructor: Option<Ptr<Object<Function>>>,
+    pub(crate) destructor: Option<Ptr<Object<Function>>>,
 
     pub(crate) size: usize,
 
@@ -64,8 +64,8 @@ pub struct TypeBuilder {
     fields: Option<Vector<String>>,
     types: Option<Vector<Ptr<Object<Type>>>>,
 
-    constructor: Option<Ptr<Function>>,
-    destructor: Option<Ptr<Function>>,
+    constructor: Option<Ptr<Object<Function>>>,
+    destructor: Option<Ptr<Object<Function>>>,
 
     size: usize,
 
@@ -115,27 +115,15 @@ impl TypeBuilder {
         self
     }
     #[inline]
-    pub fn constructor(mut self, constructor: Ptr<Function>) -> Self {
+    pub fn constructor(mut self, constructor: Ptr<Object<Function>>) -> Self {
         self.constructor = Some(constructor);
         self
     }
     #[inline]
-    pub fn destructor(mut self, destructor: Ptr<Function>) -> Self {
+    pub fn destructor(mut self, destructor: Ptr<Object<Function>>) -> Self {
         self.destructor = Some(destructor);
         self
     }
-    /*
-    #[inline]
-    pub fn constructor_raw(mut self, constructor: fn(Ptr<Object<List>>) -> Ptr<Value>) -> Self {
-        self.constructor = Some(Function::new(constructor));
-        self
-    }
-    #[inline]
-    pub fn destructor_raw(mut self, destructor: fn(Ptr<Object<List>>) -> Ptr<Value>) -> Self {
-        self.destructor = Some(Function::new(destructor));
-        self
-    }
-    */
     #[inline]
     pub fn is_abstract(mut self) -> Self {
         self.is_abstract = true;
