@@ -5,8 +5,7 @@ use lisp::lang::*;
 use lisp::utils::*;
 
 
-#[test]
-fn test_runtime() {
+fn main() {
     unsafe {
         init_typs();
     }
@@ -23,9 +22,9 @@ fn test_runtime() {
                 list = list.pop();
 
                 if v.typ() == unsafe {SYMBOL} {
-                    assert!(v.downcast::<Object<Symbol>>().is_some());
+                    println!("{:?}", v.downcast::<Object<Symbol>>().unwrap());
                 } else if v.typ() == unsafe {KEYWORD} {
-                    assert!(v.downcast::<Object<Keyword>>().is_some());
+                    println!("{:?}", v.downcast::<Object<Keyword>>().unwrap());
                 }
             }
         }

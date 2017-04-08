@@ -10,8 +10,6 @@ extern crate core;
 extern crate alloc;
 extern crate collections;
 
-#[macro_use]
-extern crate impl_any;
 extern crate collection_traits;
 extern crate hash_map;
 extern crate linked_list;

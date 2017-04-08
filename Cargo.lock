@@ -4,7 +4,6 @@ version = "0.1.0"
 dependencies = [
  "collection_traits 0.1.0 (git+https://github.com/nathanfaucett/rs-collection_traits.git)",
  "hash_map 0.1.0 (git+https://github.com/nathanfaucett/rs-hash_map.git)",
- "impl_any 0.1.0 (git+https://github.com/nathanfaucett/rs-impl_any.git)",
  "lexer 0.1.0 (git+https://github.com/nathanfaucett/rs-lexer.git)",
  "linked_list 0.1.0 (git+https://github.com/nathanfaucett/rs-linked_list.git)",
  "vector 0.1.0 (git+https://github.com/nathanfaucett/rs-vector.git)",
@@ -24,11 +23,6 @@ dependencies = [
  "prng 0.1.0 (git+https://github.com/nathanfaucett/rs-prng)",
  "rng 0.1.0 (git+https://github.com/nathanfaucett/rs-rng)",
 ]
-
-[[package]]
-name = "impl_any"
-version = "0.1.0"
-source = "git+https://github.com/nathanfaucett/rs-impl_any.git#e1243b8f42fdc09b4b584fd04ec5f1a1b01493c8"
 
 [[package]]
 name = "lexer"
@@ -67,7 +61,6 @@ dependencies = [
 [metadata]
 "checksum collection_traits 0.1.0 (git+https://github.com/nathanfaucett/rs-collection_traits.git)" = "<none>"
 "checksum hash_map 0.1.0 (git+https://github.com/nathanfaucett/rs-hash_map.git)" = "<none>"
-"checksum impl_any 0.1.0 (git+https://github.com/nathanfaucett/rs-impl_any.git)" = "<none>"
 "checksum lexer 0.1.0 (git+https://github.com/nathanfaucett/rs-lexer.git)" = "<none>"
 "checksum linked_list 0.1.0 (git+https://github.com/nathanfaucett/rs-linked_list.git)" = "<none>"
 "checksum prng 0.1.0 (git+https://github.com/nathanfaucett/rs-prng)" = "<none>"

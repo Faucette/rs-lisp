@@ -1,5 +1,7 @@
 use collections::string::String;
 
+use core::{fmt, ptr};
+
 use vector::Vector;
 
 use super::super::utils::Ptr;
@@ -40,6 +42,19 @@ impl Type {
     pub fn is_bits(&self) -> bool { self.is_bits }
 }
 
+impl PartialEq for Type {
+
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        ptr::eq(self, other)
+    }
+}
+
+impl fmt::Debug for Type {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self.name)
+    }
+}
 
 pub struct TypeBuilder {
     name: String,
@@ -110,17 +125,13 @@ impl TypeBuilder {
         self
     }
     #[inline]
-    pub fn constructor_raw(mut self, constructor: fn(_args: Ptr<Object<List>>) -> Ptr<Value>) -> Self {
-        self.constructor = Some(unsafe {
-            Ptr::from_ptr(constructor as *mut fn(_args: Ptr<Object<List>>) -> Ptr<Value>)
-        });
+    pub fn constructor_raw(mut self, constructor: fn(Ptr<Object<List>>) -> Ptr<Value>) -> Self {
+        self.constructor = Some(Function::new(constructor));
         self
     }
     #[inline]
-    pub fn destructor_raw(mut self, destructor: fn(_args: Ptr<Object<List>>) -> Ptr<Value>) -> Self {
-        self.destructor = Some(unsafe {
-            Ptr::from_ptr(destructor as *mut fn(_args: Ptr<Object<List>>) -> Ptr<Value>)
-        });
+    pub fn destructor_raw(mut self, destructor: fn(Ptr<Object<List>>) -> Ptr<Value>) -> Self {
+        self.destructor = Some(Function::new(destructor));
         self
     }
     #[inline]

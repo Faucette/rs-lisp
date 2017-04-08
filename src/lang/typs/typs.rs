@@ -4,12 +4,13 @@ use super::super::super::Ptr;
 use super::super::typ::{Type, TypeBuilder};
 use super::super::value::Value;
 use super::super::object::Object;
-use super::constructors;
 use super::list::List;
 
 
 pub static mut ANY: Ptr<Object<Type>> = Ptr::null();
 pub static mut TYP: Ptr<Object<Type>> = Ptr::null();
+
+pub static mut SCOPE: Ptr<Object<Type>> = Ptr::null();
 
 pub static mut NIL: Ptr<Object<Type>> = Ptr::null();
 
@@ -17,6 +18,7 @@ pub static mut READER: Ptr<Object<Type>> = Ptr::null();
 
 pub static mut LIST: Ptr<Object<Type>> = Ptr::null();
 pub static mut SYMBOL: Ptr<Object<Type>> = Ptr::null();
+pub static mut KEYWORD: Ptr<Object<Type>> = Ptr::null();
 
 pub static mut NUMBER: Ptr<Object<Type>> = Ptr::null();
 pub static mut REAL: Ptr<Object<Type>> = Ptr::null();
@@ -42,7 +44,7 @@ pub static mut FLOAT32: Ptr<Object<Type>> = Ptr::null();
 pub static mut FLOAT64: Ptr<Object<Type>> = Ptr::null();
 
 
-pub unsafe fn init_builtins() {
+pub unsafe fn init_typs() {
     TYP = Object::new_null_typ(
         TypeBuilder::new("Type").is_abstract().build()
     );
@@ -52,8 +54,10 @@ pub unsafe fn init_builtins() {
     ANY = Object::new(TYP, TypeBuilder::new("Any").is_abstract().build());
     ANY.value.supr = Some(ANY);
 
+    SCOPE = Object::new(TYP, TypeBuilder::new("Scope")
+        .supr(ANY).build());
+
     NIL = Object::new(TYP, TypeBuilder::new("Nil")
-        .constructor_raw(constructors::nil)
         .supr(ANY).build());
 
     READER = Object::new(TYP, TypeBuilder::new("Reader")
@@ -61,11 +65,15 @@ pub unsafe fn init_builtins() {
 
     LIST = Object::new(TYP, TypeBuilder::new("List")
         .supr(ANY)
-        .constructor_raw(List::constructor)
         .size(mem::size_of::<List>())
         .build());
 
     SYMBOL = Object::new(TYP, TypeBuilder::new("Symbol")
+        .supr(ANY)
+        .size(mem::size_of::<String>())
+        .build());
+
+    KEYWORD = Object::new(TYP, TypeBuilder::new("Keyword")
         .supr(ANY)
         .size(mem::size_of::<String>())
         .build());

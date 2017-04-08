@@ -1,4 +1,4 @@
-use core::mem;
+use core::{fmt, mem};
 use core::ops::{Deref, DerefMut};
 use core::hash::{Hash, Hasher};
 
@@ -55,12 +55,25 @@ impl<T: 'static + Send + Sync> Value for Object<T> {
         self.typ
     }
 }
+impl<T: 'static + Send + Sync> Value for Ptr<Object<T>> {
+
+    #[inline(always)]
+    fn typ(&self) -> Ptr<Object<Type>> {
+        self.typ()
+    }
+}
 
 impl<T: Function> Function for Object<T> {
 
     #[inline(always)]
     fn call(&self, args: Ptr<Object<List>>) -> Ptr<Value> {
         self.value.call(args)
+    }
+}
+
+impl<T: fmt::Debug> fmt::Debug for Object<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self.value)
     }
 }
 

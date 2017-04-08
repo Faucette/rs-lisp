@@ -1,4 +1,4 @@
-use core::ptr;
+use core::{fmt, ptr};
 use core::ops::{Deref, DerefMut};
 use core::hash::{Hash, Hasher};
 
@@ -42,11 +42,17 @@ impl<T: ?Sized> Ptr<T> {
     }
 }
 
+impl<T: fmt::Debug> fmt::Debug for Ptr<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", unsafe {&*self.ptr})
+    }
+}
+
 impl<T: ?Sized> Deref for Ptr<T> {
     type Target = T;
 
     #[inline(always)]
-    fn deref(&self) -> &T {
+    fn deref(&self) -> &Self::Target {
         unsafe {
             &*(self.ptr as *const T)
         }
@@ -56,7 +62,7 @@ impl<T: ?Sized> Deref for Ptr<T> {
 impl<T: ?Sized> DerefMut for Ptr<T> {
 
     #[inline(always)]
-    fn deref_mut(&mut self) -> &mut T {
+    fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe {
             &mut *(self.ptr as *mut T)
         }

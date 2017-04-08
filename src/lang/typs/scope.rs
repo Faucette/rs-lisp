@@ -4,7 +4,7 @@ use hash_map::HashMap;
 use super::super::super::utils::Ptr;
 use super::super::object::Object;
 use super::super::value::Value;
-use super::symbol::Symbol;
+use super::primitives::Symbol;
 
 
 pub struct Scope {
