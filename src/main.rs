@@ -7,49 +7,49 @@ use lisp::{eval, Context};
 
 fn main() {
     let context = Context::new();
-    let input = "(+ :keyword, symbol, 1, -1, 1.0)".chars().collect();
+    let input = "(def add (Function (a, b) (number_add a, b))) (add 1, 1)".chars().collect();
     let mut reader = context.gc.new_object(context.ReaderType, Reader::new(&context, input));
-    let mut values = reader.collect(&context);
+    let mut values = reader.collect(&context, context.scope);
+    let mut result = context.nil_value.as_value();
 
-    let scope = context.gc.new_object(context.ScopeType, Scope::new(None, None));
-    let output = eval(&context, scope, values.first(&context));
+    while !values.is_empty(&context).value() {
+        result = eval(&context, context.scope, values.first(&context));
 
-    println!("Eval {:?}", output.typ());
+        if result.typ() == context.BooleanType {
 
-    while !(values.is_empty(&context).value()) {
-        let value = values.first(&context);
-        values = values.pop(&context);
+            println!("{:?}", result.downcast::<Object<bool>>().unwrap());
 
-        if value.typ() == context.ListType {
-            let mut list = value.downcast::<Object<List>>().unwrap();
+        } if result.typ() == context.NilType {
 
-            while !(list.is_empty(&context).value()) {
-                let value = list.peek(&context);
-                list = list.pop(&context);
+            println!("{:?}", result.downcast::<Object<Nil>>().unwrap());
 
-                if value.typ() == context.SymbolType {
+        } if result.typ() == context.SymbolType {
 
-                    println!("{:?} {:?}", value.downcast::<Object<Symbol>>().unwrap(), value.typ());
+            println!("{:?}", result.downcast::<Object<Symbol>>().unwrap());
 
-                } else if value.typ() == context.KeywordType {
+        } else if result.typ() == context.KeywordType {
 
-                    println!("{:?} {:?}", value.downcast::<Object<Keyword>>().unwrap(), value.typ());
+            println!("{:?}", result.downcast::<Object<Keyword>>().unwrap());
 
-                } else if value.typ() == context.Float64Type {
+        } else if result.typ() == context.Float64Type {
 
-                    println!("{:?} {:?}", value.downcast::<Object<f64>>().unwrap(), value.typ());
+            println!("{:?}", result.downcast::<Object<f64>>().unwrap());
 
-                }  else if value.typ() == context.Int64Type {
+        }  else if result.typ() == context.Int64Type {
 
-                    println!("{:?} {:?}", value.downcast::<Object<isize>>().unwrap(), value.typ());
+            println!("{:?}", result.downcast::<Object<i64>>().unwrap());
 
-                } else if value.typ() == context.UInt64Type {
+        } else if result.typ() == context.UInt64Type {
 
-                    println!("{:?} {:?}", value.downcast::<Object<usize>>().unwrap(), value.typ());
+            println!("{:?}", result.downcast::<Object<u64>>().unwrap());
 
-                }
-            }
+        } else {
+
+            println!("{:?}", result.typ());
+
         }
+
+        values = values.pop(&context);
     }
 
     println!("Totel: {:?} bytes", context.gc.total());

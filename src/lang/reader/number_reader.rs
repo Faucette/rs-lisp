@@ -2,11 +2,11 @@ use collections::string::String;
 
 use ::Ptr;
 use ::Context;
-use ::lang::{Value, Object, List};
+use ::lang::{Value, Object, Scope, List};
 use super::reader::Reader;
 
 
-pub fn number_reader(context: &Context, args: Ptr<Object<List>>) -> Ptr<Value> {
+pub fn number_reader(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
     let mut reader = args.peek(context).downcast::<Object<Reader>>().unwrap();
 
     let ch = reader.peek(0);
@@ -42,23 +42,23 @@ pub fn number_reader(context: &Context, args: Ptr<Object<List>>) -> Ptr<Value> {
         }
 
         let mut ret_list = context.gc.new_object(context.ListType, List::new(context));
-        ret_list.push_back_mut(context, context.gc.new_object(context.BooleanType, true).as_value());
+        ret_list.push_back_mut(context, context.true_value.as_value());
 
         if read_dot {
             ret_list.push_back_mut(context,
                 context.gc.new_object(context.Float64Type, string.parse::<f64>().unwrap()).as_value());
         } else if is_negative {
             ret_list.push_back_mut(context,
-                context.gc.new_object(context.Int64Type, string.parse::<isize>().unwrap()).as_value());
+                context.gc.new_object(context.Int64Type, string.parse::<i64>().unwrap()).as_value());
         } else {
             ret_list.push_back_mut(context,
-                context.gc.new_object(context.UInt64Type, string.parse::<usize>().unwrap()).as_value());
+                context.gc.new_object(context.UInt64Type, string.parse::<u64>().unwrap()).as_value());
         }
 
         ret_list.as_value()
     } else {
         let mut ret_list = context.gc.new_object(context.ListType, List::new(context));
-        ret_list.push_back_mut(context, context.gc.new_object(context.BooleanType, false).as_value());
+        ret_list.push_back_mut(context, context.false_value.as_value());
         ret_list.as_value()
     }
 }

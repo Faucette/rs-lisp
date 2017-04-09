@@ -1,10 +1,10 @@
 use ::Ptr;
 use ::Context;
-use ::lang::{Value, Object, List};
+use ::lang::{Value, Object, Scope, List};
 use super::reader::Reader;
 
 
-pub fn whitespace_reader(context: &Context, args: Ptr<Object<List>>) -> Ptr<Value> {
+pub fn whitespace_reader(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
     let mut reader = args.peek(context).downcast::<Object<Reader>>().unwrap();
 
     let ch = reader.peek(0);
@@ -24,6 +24,6 @@ pub fn whitespace_reader(context: &Context, args: Ptr<Object<List>>) -> Ptr<Valu
     }
 
     let mut ret_list = context.gc.new_object(context.ListType, List::new(context));
-    ret_list.push_back_mut(context, context.gc.new_object(context.BooleanType, false).as_value());
+    ret_list.push_back_mut(context, context.false_value.as_value());
     ret_list.as_value()
 }

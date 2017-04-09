@@ -1,3 +1,4 @@
+pub mod macros;
 mod reader;
 mod callable;
 mod function;

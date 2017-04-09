@@ -3,7 +3,7 @@ use core::ops::{Deref, DerefMut};
 use core::hash::{Hash, Hasher};
 
 use ::{Context, Ptr};
-use ::lang::{Value, Type, List, Callable};
+use ::lang::{Value, Type, List, Callable, Scope};
 
 
 #[derive(Clone)]
@@ -52,8 +52,8 @@ impl<T: 'static> Value for Object<T> {
 impl<T: Callable> Callable for Object<T> {
 
     #[inline(always)]
-    fn call(&self, context: &Context, args: Ptr<Object<List>>) -> Ptr<Value> {
-        Callable::call(self.value(), context, args)
+    fn call(&self, context: &Context, scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
+        Callable::call(self.value(), context, scope, args)
     }
 }
 

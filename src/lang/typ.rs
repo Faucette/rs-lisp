@@ -4,10 +4,15 @@ use core::{fmt, ptr};
 
 use vector::Vector;
 
-use ::Ptr;
+use ::{Context, Ptr};
 
 use super::function::Function;
 use super::object::Object;
+use super::value::Value;
+use super::list::List;
+use super::symbol::Symbol;
+use super::keyword::Keyword;
+use super::scope::Scope;
 
 
 pub struct Type {
@@ -19,7 +24,6 @@ pub struct Type {
     pub(crate) types: Option<Vector<Ptr<Object<Type>>>>,
 
     pub(crate) constructor: Option<Ptr<Object<Function>>>,
-    pub(crate) destructor: Option<Ptr<Object<Function>>>,
 
     pub(crate) size: usize,
 
@@ -40,6 +44,74 @@ impl Type {
 
     #[inline(always)]
     pub fn is_bits(&self) -> bool { self.is_bits }
+
+    #[inline(always)]
+    pub fn instance_of(&self, typ: &Type) -> bool {
+        if self == typ {
+            true
+        } else if let Some(supr) = self.supr {
+            supr.instance_of(typ)
+        } else {
+            false
+        }
+    }
+
+    #[inline]
+    pub fn constructor(context: &Context, _scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+        let name: String = {
+            let value = args.first(context);
+
+            if value.typ() == context.KeywordType {
+                args = args.pop(context);
+                let keyword = value.downcast::<Object<Keyword>>().unwrap();
+                (*keyword.value()).clone()
+            } else if value.typ() == context.SymbolType {
+                args = args.pop(context);
+                let symbol = value.downcast::<Object<Symbol>>().unwrap();
+                (*symbol.value()).clone()
+            } else {
+                panic!("invalid name argument should be keyword") // TODO throw runtime exception
+            }
+        };
+
+        let supr = {
+            let value = args.first(context);
+
+            if value.typ() == context.TypeType {
+                args = args.pop(context);
+                value.downcast::<Object<Type>>().unwrap()
+            } else {
+                context.AnyType
+            }
+        };
+
+        let typ = {
+            let value = args.first(context);
+
+            if value.typ() == context.ListType {
+
+                TypeBuilder::new(name.as_str())
+                    .supr(supr).build()
+
+            } else if value.typ() == context.UInt64Type {
+                let size = value.downcast::<Object<u64>>().unwrap();
+
+                TypeBuilder::new(name.as_str())
+                    .supr(supr).size(*size.value() as usize).is_bits().build()
+
+            } else if
+                value.typ() == context.KeywordType &&
+                **value.downcast::<Object<Keyword>>().unwrap().value() == "abstract"
+            {
+                TypeBuilder::new(name.as_str())
+                    .supr(supr).is_abstract().build()
+            } else {
+                panic!("invalid type argument should be list uint or keyword") // TODO throw runtime exception
+            }
+        };
+
+        context.gc.new_object(context.TypeType, typ).as_value()
+    }
 }
 
 impl PartialEq for Type {
@@ -65,7 +137,6 @@ pub struct TypeBuilder {
     types: Option<Vector<Ptr<Object<Type>>>>,
 
     constructor: Option<Ptr<Object<Function>>>,
-    destructor: Option<Ptr<Object<Function>>>,
 
     size: usize,
 
@@ -85,7 +156,6 @@ impl TypeBuilder {
             types: None,
 
             constructor: None,
-            destructor: None,
 
             size: 0usize,
 
@@ -120,11 +190,6 @@ impl TypeBuilder {
         self
     }
     #[inline]
-    pub fn destructor(mut self, destructor: Ptr<Object<Function>>) -> Self {
-        self.destructor = Some(destructor);
-        self
-    }
-    #[inline]
     pub fn is_abstract(mut self) -> Self {
         self.is_abstract = true;
         self
@@ -145,7 +210,6 @@ impl TypeBuilder {
             types: self.types,
 
             constructor: self.constructor,
-            destructor: self.destructor,
 
             size: self.size,
 

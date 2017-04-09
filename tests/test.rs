@@ -8,46 +8,15 @@ use lisp::{eval, Context};
 #[test]
 fn test_runtime() {
     let context = Context::new();
-    let input = "(+ :keyword, symbol, 1, -1, 1.0)".chars().collect();
+    let input = "(def add (Function (a, b) (number_add a, b))) (add 1, 1)".chars().collect();
     let mut reader = context.gc.new_object(context.ReaderType, Reader::new(&context, input));
-    let mut values = reader.collect(&context);
+    let mut values = reader.collect(&context, context.scope);
+    let mut result = context.nil_value.as_value();
 
-    let scope = context.gc.new_object(context.ScopeType, Scope::new(None, None));
-    let output = eval(&context, scope, values.first(&context));
-
-    while !(values.is_empty(&context).value()) {
-        let value = values.first(&context);
+    while !values.is_empty(&context).value() {
+        result = eval(&context, context.scope, values.first(&context));
         values = values.pop(&context);
-
-        if value.typ() == context.ListType {
-            let mut list = value.downcast::<Object<List>>().unwrap();
-
-            while !(list.is_empty(&context).value()) {
-                let value = list.peek(&context);
-                list = list.pop(&context);
-
-                if value.typ() == context.SymbolType {
-
-                    assert!(value.downcast::<Object<Symbol>>().is_some());
-
-                } else if value.typ() == context.KeywordType {
-
-                    assert!(value.downcast::<Object<Keyword>>().is_some());
-
-                } else if value.typ() == context.Float64Type {
-
-                    assert!(value.downcast::<Object<f64>>().is_some());
-
-                }  else if value.typ() == context.Int64Type {
-
-                    assert!(value.downcast::<Object<isize>>().is_some());
-
-                } else if value.typ() == context.UInt64Type {
-
-                    assert!(value.downcast::<Object<usize>>().is_some());
-
-                }
-            }
-        }
     }
+
+    assert_eq!(result.downcast::<Object<u64>>().unwrap().value(), &2);
 }

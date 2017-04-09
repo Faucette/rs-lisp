@@ -3,7 +3,7 @@ use vector::Vector;
 
 use ::Ptr;
 use ::Context;
-use ::lang::{Value, Object, Callable, Function, List};
+use ::lang::{Value, Object, Callable, Function, Scope, List};
 
 use super::list_reader::list_reader;
 use super::symbol_reader::symbol_reader;
@@ -29,16 +29,16 @@ impl Reader {
         let mut readers = Vector::new();
 
         readers.push(context.gc.new_object(context.FunctionType,
-            Function::new_rust(whitespace_reader as fn(&Context, Ptr<Object<List>>) -> Ptr<Value>)));
+            Function::new_rust(whitespace_reader as fn(&Context, Ptr<Object<Scope>>, Ptr<Object<List>>) -> Ptr<Value>)));
 
         readers.push(context.gc.new_object(context.FunctionType,
-            Function::new_rust(list_reader as fn(&Context, Ptr<Object<List>>) -> Ptr<Value>)));
+            Function::new_rust(list_reader as fn(&Context, Ptr<Object<Scope>>, Ptr<Object<List>>) -> Ptr<Value>)));
 
         readers.push(context.gc.new_object(context.FunctionType,
-            Function::new_rust(number_reader as fn(&Context, Ptr<Object<List>>) -> Ptr<Value>)));
+            Function::new_rust(number_reader as fn(&Context, Ptr<Object<Scope>>, Ptr<Object<List>>) -> Ptr<Value>)));
 
         readers.push(context.gc.new_object(context.FunctionType,
-            Function::new_rust(symbol_reader as fn(&Context, Ptr<Object<List>>) -> Ptr<Value>)));
+            Function::new_rust(symbol_reader as fn(&Context, Ptr<Object<Scope>>, Ptr<Object<List>>) -> Ptr<Value>)));
 
         Reader {
             readers: readers,
@@ -47,6 +47,11 @@ impl Reader {
             row: 1u64,
             col: 1u64,
         }
+    }
+
+    #[inline]
+    pub fn constructor(context: &Context, _scope: Ptr<Object<Scope>>, _args: Ptr<Object<List>>) -> Ptr<Value> {
+        context.gc.new_object(context.ReaderType, Self::new(&context, "".chars().collect())).as_value()
     }
 
     #[inline]
@@ -85,17 +90,17 @@ impl Reader {
 
 impl Ptr<Object<Reader>> {
     #[inline]
-    pub fn next(&mut self, context: &Context) -> Ptr<Object<List>> {
+    pub fn next(&mut self, context: &Context, scope: Ptr<Object<Scope>>) -> Ptr<Object<List>> {
         if self.done() {
             let mut ret_list = context.gc.new_object(context.ListType, List::new(context));
-            ret_list.push_back_mut(context, context.gc.new_object(context.BooleanType, false).as_value());
+            ret_list.push_back_mut(context, context.false_value.as_value());
             ret_list
         } else {
             for reader in self.readers.iter() {
                 let mut args = context.gc.new_object(context.ListType, List::new(context));
                 args.push_back_mut(context, self.as_value());
 
-                let ret = reader.call(context, args);
+                let ret = reader.call(context, scope, args);
 
                 if ret.typ() == context.ListType {
                     let ret_list = ret.downcast::<Object<List>>().unwrap();
@@ -108,17 +113,17 @@ impl Ptr<Object<Reader>> {
             }
 
             let mut ret_list = context.gc.new_object(context.ListType, List::new(context));
-            ret_list.push_back_mut(context, context.gc.new_object(context.BooleanType, false).as_value());
+            ret_list.push_back_mut(context, context.false_value.as_value());
             ret_list
         }
     }
 
     #[inline]
-    pub fn collect(&mut self, context: &Context) -> Ptr<Object<List>> {
+    pub fn collect(&mut self, context: &Context, scope: Ptr<Object<Scope>>) -> Ptr<Object<List>> {
         let mut list = context.gc.new_object(context.ListType, List::new(context));
 
         loop {
-            let ret = self.next(context);
+            let ret = self.next(context, scope);
             let first = ret.first(context);
 
             if first.typ() == context.BooleanType && first.downcast::<Object<bool>>().unwrap().value() == &true {

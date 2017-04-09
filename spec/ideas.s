@@ -18,12 +18,23 @@
   (true)
   (false))
 
-;; struct (fn struct (field0, field1) StructName)
-(struct StructName (
-  field0 ISize,
-  field1 USize))
+;; real type with fields
+(Type :StructName Any (
+  :field0 ISize,
+  :field1 USize))
 
-(StructName -1 1)
+(Function :name (a, b)
+  (+ a, b))
+
+;; create new types
+(StructName 1, 1)
+
+;; bits type of 4 bytes
+(Type :BitTypeName Any 4)
+
+;; abstract type
+(Type :StructName Any :abstract)
+
 
 (mod name (
   ;; introduces new sub scope

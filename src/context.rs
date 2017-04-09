@@ -7,7 +7,7 @@ use hash_map::HashMap;
 
 use ::Ptr;
 use ::Gc;
-use ::lang::{Object, Symbol, Scope, List, Function, Reader, Type, TypeBuilder};
+use ::lang::{macros, Value, Object, Scope, Keyword, Symbol, List, Function, Nil, Reader, Type, TypeBuilder};
 
 
 #[allow(non_snake_case)]
@@ -15,8 +15,9 @@ pub struct Context {
     pub AnyType: Ptr<Object<Type>>,
     pub TypeType: Ptr<Object<Type>>,
 
-    pub ScopeType: Ptr<Object<Type>>,
     pub FunctionType: Ptr<Object<Type>>,
+    pub MacroType: Ptr<Object<Type>>,
+    pub ScopeType: Ptr<Object<Type>>,
     pub NilType: Ptr<Object<Type>>,
 
     pub ReaderType: Ptr<Object<Type>>,
@@ -49,8 +50,12 @@ pub struct Context {
     pub Float32Type: Ptr<Object<Type>>,
     pub Float64Type: Ptr<Object<Type>>,
 
-    pub namespaces: HashMap<String, Ptr<Object<Scope>>>,
+    pub true_value: Ptr<Object<bool>>,
+    pub false_value: Ptr<Object<bool>>,
+    pub nil_value: Ptr<Object<Nil>>,
 
+    pub namespaces: HashMap<String, Ptr<Object<Scope>>>,
+    pub scope: Ptr<Object<Scope>>,
     pub gc: Gc,
 }
 
@@ -60,9 +65,7 @@ impl Context {
     pub fn new() -> Self {
         let gc = Gc::new();
 
-        let mut TypeType = gc.new_null_typ_object(
-            TypeBuilder::new("Type").is_abstract().build()
-        );
+        let mut TypeType = gc.new_null_typ_object(TypeBuilder::new("Type").build());
         TypeType.typ = TypeType;
 
         let mut AnyType = gc.new_object(TypeType, TypeBuilder::new("Any")
@@ -71,32 +74,46 @@ impl Context {
         AnyType.value.supr = Some(AnyType);
         TypeType.value.supr = Some(AnyType);
 
+        let mut FunctionType = gc.new_object(TypeType, TypeBuilder::new("Function")
+            .size(mem::size_of::<Function>())
+            .supr(AnyType).build());
+        let mut MacroType = gc.new_object(TypeType, TypeBuilder::new("Macro")
+            .size(mem::size_of::<Function>())
+            .supr(AnyType).build());
+
+        FunctionType.value.constructor = Some(gc.new_object(FunctionType, Function::new_rust(Function::constructor)));
+        MacroType.value.constructor = Some(gc.new_object(FunctionType, Function::new_rust(Function::constructor)));
+
+        TypeType.value.constructor = Some(gc.new_object(FunctionType, Function::new_rust(Type::constructor)));
+
         let ScopeType = gc.new_object(TypeType, TypeBuilder::new("Scope")
             .size(mem::size_of::<Scope>())
             .supr(AnyType).build());
-        let FunctionType = gc.new_object(TypeType, TypeBuilder::new("Function")
-            .size(mem::size_of::<Function>())
-            .supr(AnyType).build());
         let NilType = gc.new_object(TypeType, TypeBuilder::new("Nil")
+            .constructor(gc.new_object(FunctionType, Function::new_rust(Nil::constructor)))
             .supr(AnyType).build());
 
         let ReaderType = gc.new_object(TypeType, TypeBuilder::new("Reader")
             .size(mem::size_of::<Reader>())
+            .constructor(gc.new_object(FunctionType, Function::new_rust(Reader::constructor)))
             .supr(AnyType).build());
 
         let ListType = gc.new_object(TypeType, TypeBuilder::new("List")
             .supr(AnyType)
             .size(mem::size_of::<List>())
+            .constructor(gc.new_object(FunctionType, Function::new_rust(List::constructor)))
             .build());
 
         let SymbolType = gc.new_object(TypeType, TypeBuilder::new("Symbol")
             .supr(AnyType)
             .size(mem::size_of::<String>())
+            .constructor(gc.new_object(FunctionType, Function::new_rust(Symbol::constructor)))
             .build());
 
         let KeywordType = gc.new_object(TypeType, TypeBuilder::new("Keyword")
             .supr(AnyType)
             .size(mem::size_of::<String>())
+            .constructor(gc.new_object(FunctionType, Function::new_rust(Keyword::constructor)))
             .build());
 
         let NumberType = gc.new_object(TypeType, TypeBuilder::new("Number")
@@ -116,48 +133,106 @@ impl Context {
             .supr(IntegerType).is_abstract().build());
 
         let BooleanType = gc.new_object(TypeType, TypeBuilder::new("Boolean")
+            .constructor(gc.new_object(FunctionType, Function::new_rust(Boolean_constructor)))
             .supr(IntegerType).size(mem::size_of::<bool>()).is_bits().build());
         let CharType = gc.new_object(TypeType, TypeBuilder::new("Char")
+            .constructor(gc.new_object(FunctionType, Function::new_rust(Char_constructor)))
             .supr(AnyType).size(mem::size_of::<char>()).is_bits().build());
 
         let Int8Type = gc.new_object(TypeType, TypeBuilder::new("Int8")
+            .constructor(gc.new_object(FunctionType, Function::new_rust(Int8_constructor)))
             .supr(SignedType).size(mem::size_of::<i8>()).is_bits().build());
         let Int16Type = gc.new_object(TypeType, TypeBuilder::new("Int16")
+            .constructor(gc.new_object(FunctionType, Function::new_rust(Int16_constructor)))
             .supr(SignedType).size(mem::size_of::<i16>()).is_bits().build());
         let Int32Type = gc.new_object(TypeType, TypeBuilder::new("Int32")
+            .constructor(gc.new_object(FunctionType, Function::new_rust(Int32_constructor)))
             .supr(SignedType).size(mem::size_of::<i32>()).is_bits().build());
         let Int64Type = gc.new_object(TypeType, TypeBuilder::new("Int64")
+            .constructor(gc.new_object(FunctionType, Function::new_rust(Int64_constructor)))
             .supr(SignedType).size(mem::size_of::<i64>()).is_bits().build());
 
         let UInt8Type = gc.new_object(TypeType, TypeBuilder::new("UInt8")
+            .constructor(gc.new_object(FunctionType, Function::new_rust(UInt8_constructor)))
             .supr(UnsignedType).size(mem::size_of::<u8>()).is_bits().build());
         let UInt16Type = gc.new_object(TypeType, TypeBuilder::new("UInt16")
+            .constructor(gc.new_object(FunctionType, Function::new_rust(UInt16_constructor)))
             .supr(UnsignedType).size(mem::size_of::<u16>()).is_bits().build());
         let UInt32Type = gc.new_object(TypeType, TypeBuilder::new("UInt32")
+            .constructor(gc.new_object(FunctionType, Function::new_rust(UInt32_constructor)))
             .supr(UnsignedType).size(mem::size_of::<u32>()).is_bits().build());
         let UInt64Type = gc.new_object(TypeType, TypeBuilder::new("UInt64")
+            .constructor(gc.new_object(FunctionType, Function::new_rust(UInt64_constructor)))
             .supr(UnsignedType).size(mem::size_of::<u64>()).is_bits().build());
 
         let Float32Type = gc.new_object(TypeType, TypeBuilder::new("Float32")
+            .constructor(gc.new_object(FunctionType, Function::new_rust(Float32_constructor)))
             .supr(FloatType).size(mem::size_of::<f32>()).is_bits().build());
         let Float64Type = gc.new_object(TypeType, TypeBuilder::new("Float64")
+            .constructor(gc.new_object(FunctionType, Function::new_rust(Float64_constructor)))
             .supr(FloatType).size(mem::size_of::<f64>()).is_bits().build());
 
-        let namespace_core = gc.new_object(ScopeType, Scope::new(
-            Some(gc.new_object(SymbolType, Symbol::new("core.lang".into()))),
-            None
-        ));
+        let true_value = gc.new_object(BooleanType, true);
+        let false_value = gc.new_object(BooleanType, false);
+        let nil_value = gc.new_object(NilType, Nil::new());
 
-        let mut namespaces = HashMap::new();
+        let mut scope = gc.new_object(ScopeType, Scope::new(None, None));
 
-        namespaces.insert((**namespace_core.name().unwrap()).clone(), namespace_core);
+        scope.set("Type", TypeType.as_value());
+        scope.set("Any", AnyType.as_value());
+
+        // scope.set("Scope", ScopeType.as_value());
+        scope.set("Function", FunctionType.as_value());
+        scope.set("Macro", MacroType.as_value());
+        scope.set("Nil", NilType.as_value());
+
+        scope.set("Reader", ReaderType.as_value());
+        scope.set("List", ListType.as_value());
+        scope.set("Symbol", SymbolType.as_value());
+        scope.set("Keyword", KeywordType.as_value());
+
+        scope.set("Number", NumberType.as_value());
+        scope.set("Real", RealType.as_value());
+        scope.set("Float", FloatType.as_value());
+        scope.set("Integer", IntegerType.as_value());
+        scope.set("Signed", SignedType.as_value());
+        scope.set("Unsigned", UnsignedType.as_value());
+
+        scope.set("Boolean", BooleanType.as_value());
+        scope.set("Char", CharType.as_value());
+
+        scope.set("Int8", Int8Type.as_value());
+        scope.set("Int16", Int16Type.as_value());
+        scope.set("Int32", Int32Type.as_value());
+        scope.set("Int64", Int64Type.as_value());
+
+        scope.set("UInt8", UInt8Type.as_value());
+        scope.set("UInt16", UInt16Type.as_value());
+        scope.set("UInt32", UInt32Type.as_value());
+        scope.set("UInt64", UInt64Type.as_value());
+
+        scope.set("Float32", Float32Type.as_value());
+        scope.set("Float64", Float64Type.as_value());
+
+        scope.set("true", true_value.as_value());
+        scope.set("false", false_value.as_value());
+        scope.set("nil", nil_value.as_value());
+
+        scope.set("def", gc.new_object(MacroType, Function::new_rust(macros::def)).as_value());
+        scope.set("quote", gc.new_object(MacroType, Function::new_rust(macros::quote)).as_value());
+        scope.set("if", gc.new_object(MacroType, Function::new_rust(macros::_if)).as_value());
+        scope.set("let", gc.new_object(MacroType, Function::new_rust(macros::_let)).as_value());
+        scope.set("throw", gc.new_object(MacroType, Function::new_rust(macros::throw)).as_value());
+
+        scope.set("number_add", gc.new_object(FunctionType, Function::new_rust(add)).as_value());
 
         Context {
             AnyType: AnyType,
             TypeType: TypeType,
 
-            ScopeType: ScopeType,
             FunctionType: FunctionType,
+            MacroType: MacroType,
+            ScopeType: ScopeType,
             NilType: NilType,
 
             ReaderType: ReaderType,
@@ -189,9 +264,79 @@ impl Context {
             Float32Type: Float32Type,
             Float64Type: Float64Type,
 
-            namespaces: namespaces,
-
+            nil_value: nil_value,
+            true_value: true_value,
+            false_value: false_value,
+            namespaces: HashMap::new(),
+            scope: scope,
             gc: gc,
         }
     }
 }
+
+pub fn add(context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+    let left = args.first(context);
+    args = args.pop(context);
+    let right = args.first(context);
+
+    if left.typ() == context.UInt64Type && right.typ() == context.UInt64Type {
+        let a = left.downcast::<Object<u64>>().unwrap();
+        let b = right.downcast::<Object<u64>>().unwrap();
+        context.gc.new_object(context.UInt64Type, a.value() + b.value()).as_value()
+    } else {
+        context.gc.new_object(context.UInt64Type, 0u64).as_value()
+    }
+}
+
+#[allow(non_snake_case)]
+#[inline]
+pub fn Boolean_constructor(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
+    let value = args.first(context);
+
+    if value.typ() == context.BooleanType {
+        value
+    } else {
+        context.false_value.as_value()
+    }
+}
+
+#[allow(non_snake_case)]
+#[inline]
+pub fn Char_constructor(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
+    let value = args.first(context);
+
+    if value.typ() == context.CharType {
+        value
+    } else {
+        context.gc.new_object(context.CharType, '\0').as_value()
+    }
+}
+
+macro_rules! create_number_constructor {
+    ($name:ident, $default:expr) => (
+        #[allow(non_snake_case)]
+        #[inline]
+        pub fn $name(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
+            let value = args.first(context);
+
+            if value.typ().instance_of(&**context.NumberType) {
+                context.gc.new_object(context.Int8Type, $default).as_value() // TODO add number casting
+            } else {
+                context.gc.new_object(context.Int8Type, $default).as_value()
+            }
+        }
+    );
+}
+
+create_number_constructor!(Int8_constructor, 0u8);
+create_number_constructor!(Int16_constructor, 0u16);
+create_number_constructor!(Int32_constructor, 0u32);
+create_number_constructor!(Int64_constructor, 0u64);
+
+create_number_constructor!(UInt8_constructor, 0i8);
+create_number_constructor!(UInt16_constructor, 0i16);
+create_number_constructor!(UInt32_constructor, 0i32);
+create_number_constructor!(UInt64_constructor, 0i64);
+
+create_number_constructor!(Float32_constructor, 0f32);
+create_number_constructor!(Float64_constructor, 0f64);

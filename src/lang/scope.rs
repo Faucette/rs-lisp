@@ -71,7 +71,7 @@ impl Scope {
     }
 
     #[inline]
-    pub fn define(&mut self, symbol: &str, value: Ptr<Value>) {
+    pub fn set(&mut self, symbol: &str, value: Ptr<Value>) {
         let string: String = symbol.into();
 
         if let Some(ref mut scope) = self.get_defined_scope_mut(&string) {

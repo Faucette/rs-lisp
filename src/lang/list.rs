@@ -1,9 +1,9 @@
 use ::Ptr;
 use ::Context;
 
-use super::nil::Nil;
 use super::value::Value;
 use super::object::Object;
+use super::scope::Scope;
 
 
 struct Node {
@@ -29,7 +29,7 @@ impl Node {
 pub struct List {
     root: Option<Ptr<Object<Node>>>,
     tail: Option<Ptr<Object<Node>>>,
-    size: Ptr<Object<usize>>,
+    size: Ptr<Object<u64>>,
 }
 
 unsafe impl Send for List {}
@@ -42,21 +42,30 @@ impl List {
         List {
             root: None,
             tail: None,
-            size: context.gc.new_object(context.UInt64Type, 0usize),
+            size: context.gc.new_object(context.UInt64Type, 0u64),
         }
+    }
+
+    #[inline]
+    pub fn constructor(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
+        args.pop(context).as_value()
     }
 }
 
 impl Ptr<Object<List>> {
 
     #[inline(always)]
-    pub fn size(&self) -> Ptr<Object<usize>> {
+    pub fn size(&self) -> Ptr<Object<u64>> {
         self.size
     }
 
     #[inline(always)]
     pub fn is_empty(&self, context: &Context) -> Ptr<Object<bool>> {
-        context.gc.new_object(context.BooleanType, **self.size == 0)
+        if **self.size == 0 {
+            context.true_value
+        } else {
+            context.false_value
+        }
     }
 
     #[inline]
@@ -110,7 +119,7 @@ impl Ptr<Object<List>> {
     pub fn peek(&self, context: &Context) -> Ptr<Value> {
         match self.root {
             Some(ref root) => root.data,
-            None => context.gc.new_object(context.NilType, Nil::new()).as_value(),
+            None => context.nil_value.as_value(),
         }
     }
 
@@ -122,7 +131,7 @@ impl Ptr<Object<List>> {
     pub fn last(&self, context: &Context) -> Ptr<Value> {
         match self.tail {
             Some(ref tail) => tail.data,
-            None => context.gc.new_object(context.NilType, Nil::new()).as_value(),
+            None => context.nil_value.as_value(),
         }
     }
 }
