@@ -86,8 +86,8 @@ impl Context {
             .size(mem::size_of::<Function>())
             .supr(AnyType).build());
 
-        FunctionType.value.constructor = Some(gc.new_object(FunctionType, Function::new_rust(Function::constructor)));
-        MacroType.value.constructor = Some(gc.new_object(FunctionType, Function::new_rust(Function::macro_constructor)));
+        FunctionType.value.constructor = Some(gc.new_object(MacroType, Function::new_rust(Function::constructor)));
+        MacroType.value.constructor = Some(gc.new_object(MacroType, Function::new_rust(Function::macro_constructor)));
 
         TypeType.value.constructor = Some(gc.new_object(FunctionType, Function::new_rust(Type::constructor)));
 

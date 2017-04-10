@@ -2,6 +2,7 @@ use ::{Context, Ptr};
 use ::lang::{Value, Object, List, Function, Symbol, Scope, Type, Callable};
 
 
+#[inline]
 pub fn eval(context: &Context, scope: Ptr<Object<Scope>>, value: Ptr<Value>) -> Ptr<Value> {
     let typ = value.typ();
 
@@ -20,12 +21,20 @@ pub fn eval(context: &Context, scope: Ptr<Object<Scope>>, value: Ptr<Value>) -> 
     }
 }
 
+#[inline]
 fn eval_list(context: &Context, scope: Ptr<Object<Scope>>, mut list: Ptr<Object<List>>) -> Ptr<Value> {
     let symbol = list.first(context);
     let callable = eval(context, scope, symbol);
 
     list = list.pop(context);
 
+    println!("eval {:?} {:?}", symbol, list);
+
+    eval_fn(context, scope, callable, list)
+}
+
+#[inline]
+fn eval_fn(context: &Context, scope: Ptr<Object<Scope>>, callable: Ptr<Value>, list: Ptr<Object<List>>) -> Ptr<Value> {
     if callable.typ() == context.FunctionType {
 
         let function = callable.downcast::<Object<Function>>().unwrap();
@@ -49,14 +58,14 @@ fn eval_list(context: &Context, scope: Ptr<Object<Scope>>, mut list: Ptr<Object<
         if typ.is_abstract() {
             panic!("can not create abstract type") // TODO throw runtime exception
         } else {
-            let args = eval_arguments(context, scope, list);
-            typ.constructor.unwrap().call(context, scope, args)
+            eval_fn(context, scope, typ.constructor.unwrap().as_value(), list)
         }
     } else {
         panic!("can not call {:?} as function", callable)
     }
 }
 
+#[inline]
 fn eval_arguments(context: &Context, scope: Ptr<Object<Scope>>, mut list: Ptr<Object<List>>) -> Ptr<Object<List>> {
     let mut args = context.gc.new_object(context.ListType, List::new(context));
 

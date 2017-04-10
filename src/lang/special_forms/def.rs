@@ -22,6 +22,7 @@ pub fn def(context: &Context, mut scope: Ptr<Object<Scope>>, mut args: Ptr<Objec
 
     args = args.pop(context);
 
+    println!("def {:?} {:?}", name, args.first(context));
     let value = eval(context, scope, args.first(context));
     scope.set(&name, value);
 
