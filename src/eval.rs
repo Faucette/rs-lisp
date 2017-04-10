@@ -28,11 +28,11 @@ fn eval_list(context: &Context, scope: Ptr<Object<Scope>>, mut list: Ptr<Object<
 
     list = list.pop(context);
 
-    eval_fn(context, scope, callable, list)
+    eval_fn(context, scope, symbol, callable, list)
 }
 
 #[inline]
-fn eval_fn(context: &Context, scope: Ptr<Object<Scope>>, callable: Ptr<Value>, list: Ptr<Object<List>>) -> Ptr<Value> {
+fn eval_fn(context: &Context, scope: Ptr<Object<Scope>>, symbol: Ptr<Value>, callable: Ptr<Value>, list: Ptr<Object<List>>) -> Ptr<Value> {
     if callable.typ() == context.FunctionType {
 
         let function = callable.downcast::<Object<Function>>().unwrap();
@@ -56,10 +56,10 @@ fn eval_fn(context: &Context, scope: Ptr<Object<Scope>>, callable: Ptr<Value>, l
         if typ.is_abstract() {
             panic!("can not create abstract type") // TODO throw runtime exception
         } else {
-            eval_fn(context, scope, typ.constructor.unwrap().as_value(), list)
+            eval_fn(context, scope, typ.as_value(), typ.constructor.unwrap().as_value(), list)
         }
     } else {
-        panic!("can not call {:?} as function", callable)
+        panic!("can not call {:?} which is {:?} as function", symbol, callable)
     }
 }
 

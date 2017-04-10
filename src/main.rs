@@ -41,11 +41,60 @@ pub fn lisp_add_uint64(context: &Context, scope: Ptr<Object<Scope>>, mut args: P
     }
 }
 
+pub fn lisp_int_eq(context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+    let left = args.first(context);
+    args = args.pop(context);
+    let right = args.first(context);
+
+    if left.typ() == context.UInt64Type && right.typ() == context.UInt64Type {
+        let a = left.downcast::<Object<u64>>().unwrap();
+        let b = right.downcast::<Object<u64>>().unwrap();
+        context.gc.new_object(context.BooleanType, a.value() == b.value()).as_value()
+    } else {
+        context.gc.new_object(context.BooleanType, false).as_value()
+    }
+}
+
+pub fn lisp_int_sub(context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+    let left = args.first(context);
+    args = args.pop(context);
+    let right = args.first(context);
+
+    if left.typ() == context.UInt64Type && right.typ() == context.UInt64Type {
+        let a = left.downcast::<Object<u64>>().unwrap();
+        let b = right.downcast::<Object<u64>>().unwrap();
+        context.gc.new_object(context.UInt64Type, a.value() - b.value()).as_value()
+    } else {
+        context.gc.new_object(context.UInt64Type, 0u64).as_value()
+    }
+}
+
+pub fn lisp_int_mul(context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+    let left = args.first(context);
+    args = args.pop(context);
+    let right = args.first(context);
+
+    if left.typ() == context.UInt64Type && right.typ() == context.UInt64Type {
+        let a = left.downcast::<Object<u64>>().unwrap();
+        let b = right.downcast::<Object<u64>>().unwrap();
+        context.gc.new_object(context.UInt64Type, a.value() * b.value()).as_value()
+    } else {
+        context.gc.new_object(context.UInt64Type, 0u64).as_value()
+    }
+}
+
 fn main() {
     let mut context = Context::new();
 
     context.scope.set("add_uint64", context.gc.new_object(context.FunctionType,
         Function::new_rust(lisp_add_uint64)).as_value());
+
+    context.scope.set("int_eq", context.gc.new_object(context.FunctionType,
+        Function::new_rust(lisp_int_eq)).as_value());
+    context.scope.set("int_sub", context.gc.new_object(context.FunctionType,
+        Function::new_rust(lisp_int_sub)).as_value());
+    context.scope.set("int_mul", context.gc.new_object(context.FunctionType,
+        Function::new_rust(lisp_int_mul)).as_value());
 
     context.scope.set("print", context.gc.new_object(context.FunctionType,
         Function::new_rust(lisp_print)).as_value());
