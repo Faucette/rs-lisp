@@ -10,7 +10,24 @@ use lisp::{eval, Ptr, Context};
 
 
 
-pub fn add_uint64(context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+pub fn lisp_print(context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+
+    loop {
+        print!("{:?}", args.first(context));
+        args = args.pop(context);
+
+        if *args.is_empty(context).value() {
+            break;
+        } else {
+            print!(", ");
+        }
+    }
+    println!("");
+
+    context.nil_value.as_value()
+}
+
+pub fn lisp_add_uint64(context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
     let left = args.first(context);
     args = args.pop(context);
     let right = args.first(context);
@@ -26,7 +43,12 @@ pub fn add_uint64(context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Ob
 
 fn main() {
     let mut context = Context::new();
-    context.scope.set("add_uint64", context.gc.new_object(context.FunctionType, Function::new_rust(add_uint64)).as_value());
+
+    context.scope.set("add_uint64", context.gc.new_object(context.FunctionType,
+        Function::new_rust(lisp_add_uint64)).as_value());
+
+    context.scope.set("print", context.gc.new_object(context.FunctionType,
+        Function::new_rust(lisp_print)).as_value());
 
     let mut file = File::open("tests/test.s").unwrap();
     let mut contents = String::new();
@@ -41,6 +63,7 @@ fn main() {
 
     while !values.is_empty(&context).value() {
         result = eval(&context, context.scope, values.first(&context));
+        println!("{:?}", result);
         values = values.pop(&context);
     }
 

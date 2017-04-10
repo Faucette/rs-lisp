@@ -28,6 +28,7 @@ pub struct Context {
 
     pub SymbolType: Ptr<Object<Type>>,
     pub KeywordType: Ptr<Object<Type>>,
+    pub StringType: Ptr<Object<Type>>,
 
     pub NumberType: Ptr<Object<Type>>,
     pub RealType: Ptr<Object<Type>>,
@@ -79,17 +80,21 @@ impl Context {
         let mut FunctionType = gc.new_object(TypeType, TypeBuilder::new("Function")
             .size(mem::size_of::<Function>())
             .supr(AnyType).build());
+
+        FunctionType.value.constructor = Some(gc.new_object(FunctionType,
+            Function::new_rust(Function::constructor)));
+
         let mut SpecialFormType = gc.new_object(TypeType, TypeBuilder::new("SpecialForm")
             .size(mem::size_of::<Function>())
+            .constructor(gc.new_object(FunctionType, Function::new_rust(Function::special_form_constructor)))
             .supr(AnyType).build());
         let mut MacroType = gc.new_object(TypeType, TypeBuilder::new("Macro")
             .size(mem::size_of::<Function>())
+            .constructor(gc.new_object(FunctionType, Function::new_rust(Function::macro_constructor)))
             .supr(AnyType).build());
 
-        FunctionType.value.constructor = Some(gc.new_object(MacroType, Function::new_rust(Function::constructor)));
-        MacroType.value.constructor = Some(gc.new_object(MacroType, Function::new_rust(Function::macro_constructor)));
-
-        TypeType.value.constructor = Some(gc.new_object(FunctionType, Function::new_rust(Type::constructor)));
+        TypeType.value.constructor = Some(gc.new_object(FunctionType,
+            Function::new_rust(Type::constructor)));
 
         let ScopeType = gc.new_object(TypeType, TypeBuilder::new("Scope")
             .size(mem::size_of::<Scope>())
@@ -114,11 +119,15 @@ impl Context {
             .size(mem::size_of::<String>())
             .constructor(gc.new_object(FunctionType, Function::new_rust(Symbol::constructor)))
             .build());
-
         let KeywordType = gc.new_object(TypeType, TypeBuilder::new("Keyword")
             .supr(AnyType)
             .size(mem::size_of::<String>())
             .constructor(gc.new_object(FunctionType, Function::new_rust(Keyword::constructor)))
+            .build());
+        let StringType = gc.new_object(TypeType, TypeBuilder::new("String")
+            .supr(AnyType)
+            .size(mem::size_of::<String>())
+            .constructor(gc.new_object(FunctionType, Function::new_rust(String_constructor)))
             .build());
 
         let NumberType = gc.new_object(TypeType, TypeBuilder::new("Number")
@@ -193,14 +202,17 @@ impl Context {
 
         // scope.set("Scope", ScopeType.as_value());
         scope.set("Function", FunctionType.as_value());
-        scope.set("Fn", FunctionType.as_value());
+        scope.set("SpecialForm", SpecialFormType.as_value());
         scope.set("Macro", MacroType.as_value());
         scope.set("Nil", NilType.as_value());
 
         scope.set("Reader", ReaderType.as_value());
+
         scope.set("List", ListType.as_value());
+
         scope.set("Symbol", SymbolType.as_value());
         scope.set("Keyword", KeywordType.as_value());
+        scope.set("String", StringType.as_value());
 
         scope.set("Number", NumberType.as_value());
         scope.set("Real", RealType.as_value());
@@ -229,10 +241,12 @@ impl Context {
         scope.set("false", false_value.as_value());
         scope.set("nil", nil_value.as_value());
 
-        scope.set("def", gc.new_object(SpecialFormType, Function::new_rust(special_forms::def)).as_value());
-        scope.set("quote", gc.new_object(SpecialFormType, Function::new_rust(special_forms::quote)).as_value());
+        scope.set("fn", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_fn)).as_value());
         scope.set("if", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_if)).as_value());
         scope.set("let", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_let)).as_value());
+        scope.set("macro", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_macro)).as_value());
+        scope.set("def", gc.new_object(SpecialFormType, Function::new_rust(special_forms::def)).as_value());
+        scope.set("quote", gc.new_object(SpecialFormType, Function::new_rust(special_forms::quote)).as_value());
         scope.set("throw", gc.new_object(SpecialFormType, Function::new_rust(special_forms::throw)).as_value());
 
         Context {
@@ -249,8 +263,10 @@ impl Context {
             ReaderType: ReaderType,
 
             ListType: ListType,
+
             SymbolType: SymbolType,
             KeywordType: KeywordType,
+            StringType: StringType,
 
             NumberType: NumberType,
             RealType: RealType,
@@ -288,6 +304,29 @@ impl Context {
 
 #[allow(non_snake_case)]
 #[inline]
+pub fn String_constructor(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
+    let value = args.first(context);
+
+    if value.typ() == context.StringType {
+        value
+    } else if value.typ() == context.SymbolType {
+
+        let symbol = value.downcast::<Object<Symbol>>().unwrap();
+        context.gc.new_object(context.StringType, (*symbol.value()).clone()).as_value()
+
+    } else if value.typ() == context.KeywordType {
+
+        let keyword = value.downcast::<Object<Keyword>>().unwrap();
+        context.gc.new_object(context.StringType, (*keyword.value()).clone()).as_value()
+
+    } else {
+
+        context.gc.new_object(context.StringType, String::new()).as_value()
+    }
+}
+
+#[allow(non_snake_case)]
+#[inline]
 pub fn Boolean_constructor(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
     let value = args.first(context);
 
@@ -307,7 +346,7 @@ pub fn Char_constructor(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr
         value
     } else {
         context.gc.new_object(context.CharType, '\0').as_value()
-    }
+    } // TODO add cast from int to char
 }
 
 macro_rules! create_number_constructor {

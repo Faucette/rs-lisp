@@ -7,7 +7,7 @@ use super::reader::Reader;
 
 
 pub fn number_reader(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
-    let mut reader = args.peek(context).downcast::<Object<Reader>>().unwrap();
+    let mut reader = args.first(context).downcast::<Object<Reader>>().unwrap();
 
     let ch = reader.peek(0);
     let is_negative = ch == '-';
@@ -30,9 +30,9 @@ pub fn number_reader(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Ob
             let ch = reader.peek(0);
 
             if ch == '.' && !read_dot {
+                read_dot = true;
                 reader.read();
                 string.push(ch);
-                read_dot = true;
             } else if ch.is_numeric() {
                 reader.read();
                 string.push(ch);
@@ -42,6 +42,7 @@ pub fn number_reader(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Ob
         }
 
         let mut ret_list = context.gc.new_object(context.ListType, List::new(context));
+
         ret_list.push_back_mut(context, context.true_value.as_value());
 
         if read_dot {

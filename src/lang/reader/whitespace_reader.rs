@@ -2,20 +2,21 @@ use ::Ptr;
 use ::Context;
 use ::lang::{Value, Object, Scope, List};
 use super::reader::Reader;
+use super::utils;
 
 
 pub fn whitespace_reader(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
-    let mut reader = args.peek(context).downcast::<Object<Reader>>().unwrap();
+    let mut reader = args.first(context).downcast::<Object<Reader>>().unwrap();
 
     let ch = reader.peek(0);
 
-    if ch.is_whitespace() || ch == ',' {
+    if utils::is_whitespace(ch) {
         reader.read();
 
         while !reader.done() {
             let ch = reader.peek(0);
 
-            if ch.is_whitespace() || ch == ',' {
+            if utils::is_whitespace(ch) {
                 reader.read();
             } else {
                 break;

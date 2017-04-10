@@ -1,5 +1,5 @@
 use ::{Ptr, Context, eval};
-use ::lang::{Value, Object, Scope, List, Keyword, Symbol};
+use ::lang::{Value, Object, Scope, List, Symbol};
 
 
 #[inline]

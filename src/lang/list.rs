@@ -57,7 +57,7 @@ impl List {
     }
 
     #[inline]
-    pub fn constructor(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
+    pub fn constructor(_context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
         args.as_value()
     }
 
@@ -100,8 +100,8 @@ impl Ptr<Object<List>> {
     }
 
     #[inline(always)]
-    fn nth(&self, context: &Context, index: Ptr<Object<usize>>) -> Ptr<Value> {
-        match self.find_node(*index.value()) {
+    fn nth(&self, context: &Context, index: Ptr<Object<u64>>) -> Ptr<Value> {
+        match self.find_node(*index.value() as usize) {
             Some(ref node) => node.data,
             None => context.nil_value.as_value(),
         }
@@ -181,16 +181,16 @@ impl fmt::Debug for List {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut node = self.root;
 
-        write!(f, "(");
+        write!(f, "(")?;
         while let Some(n) = node {
             let value = n.data;
 
             node = n.next;
 
             if node.is_none() {
-                write!(f, "{:?}", value);
+                write!(f, "{:?}", value)?;
             } else {
-                write!(f, "{:?} ", value);
+                write!(f, "{:?} ", value)?;
             }
         }
         write!(f, ")")

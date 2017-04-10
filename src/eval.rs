@@ -28,8 +28,6 @@ fn eval_list(context: &Context, scope: Ptr<Object<Scope>>, mut list: Ptr<Object<
 
     list = list.pop(context);
 
-    println!("eval {:?} {:?}", symbol, list);
-
     eval_fn(context, scope, callable, list)
 }
 

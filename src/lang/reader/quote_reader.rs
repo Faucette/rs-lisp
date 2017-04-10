@@ -5,7 +5,7 @@ use super::reader::Reader;
 
 
 pub fn quote_reader(context: &Context, scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
-    let mut reader = args.peek(context).downcast::<Object<Reader>>().unwrap();
+    let mut reader = args.first(context).downcast::<Object<Reader>>().unwrap();
 
     let ch = reader.peek(0);
 

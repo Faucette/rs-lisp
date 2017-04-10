@@ -7,10 +7,11 @@ use ::Ptr;
 use ::Context;
 use ::lang::{Value, Object, Callable, Function, Scope, List};
 
+use super::identifier_reader::identifier_reader;
 use super::list_reader::list_reader;
 use super::number_reader::number_reader;
-use super::symbol_reader::symbol_reader;
 use super::quote_reader::quote_reader;
+use super::quoted_reader::quoted_reader;
 use super::whitespace_reader::whitespace_reader;
 
 
@@ -35,7 +36,8 @@ impl Reader {
         readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(list_reader)));
         readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(number_reader)));
         readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(quote_reader)));
-        readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(symbol_reader)));
+        readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(quoted_reader)));
+        readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(identifier_reader)));
 
         Reader {
             readers: readers,
@@ -47,8 +49,17 @@ impl Reader {
     }
 
     #[inline]
-    pub fn constructor(context: &Context, _scope: Ptr<Object<Scope>>, _args: Ptr<Object<List>>) -> Ptr<Value> {
-        context.gc.new_object(context.ReaderType, Self::new(&context, "".chars().collect())).as_value()
+    pub fn constructor(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
+        let first = args.first(context);
+
+        let reader = if first.typ() == context.StringType {
+            let string = first.downcast::<Object<String>>().unwrap();
+            Reader::new(context, string.chars().collect())
+        } else {
+            Reader::new(context, "".chars().collect())
+        };
+
+        context.gc.new_object(context.ReaderType, reader).as_value()
     }
 
     #[inline]
@@ -106,6 +117,10 @@ impl Ptr<Object<Reader>> {
                     if first.typ() == context.BooleanType && first.downcast::<Object<bool>>().unwrap().value() == &true {
                         return ret_list;
                     }
+                }
+
+                if self.done() {
+                    break;
                 }
             }
 

@@ -9,6 +9,7 @@ use lisp::lang::*;
 use lisp::{eval, Ptr, Context};
 
 
+
 pub fn add_uint64(context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
     let left = args.first(context);
     args = args.pop(context);
@@ -37,10 +38,13 @@ fn test_runtime() {
     let mut values = reader.collect(&context, context.scope);
     let mut result = context.nil_value.as_value();
 
+    println!("\nAST: {:?}\n", values);
+
     while !values.is_empty(&context).value() {
         result = eval(&context, context.scope, values.first(&context));
+        println!("{:?}", result);
         values = values.pop(&context);
     }
 
-    assert_eq!(result.downcast::<Object<u64>>().unwrap().value(), &2);
+    println!("\nTotel: {:?} bytes\n", context.gc.total());
 }

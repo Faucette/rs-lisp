@@ -35,11 +35,15 @@ impl Function {
     }
 
     #[inline(always)]
-    pub fn constructor(context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+    pub fn constructor(context: &Context, scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
         Self::generic_constructor(context.FunctionType, context, scope, args)
     }
     #[inline(always)]
-    pub fn macro_constructor(context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+    pub fn special_form_constructor(context: &Context, scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
+        Self::generic_constructor(context.SpecialFormType, context, scope, args)
+    }
+    #[inline(always)]
+    pub fn macro_constructor(context: &Context, scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
         Self::generic_constructor(context.MacroType, context, scope, args)
     }
 
@@ -115,7 +119,7 @@ impl fmt::Debug for Function {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Function::Rust(ref fn_ptr) => write!(f, "%Native Function {{}}"),
+            &Function::Rust(_) => write!(f, "%Native Function {{}}"),
             &Function::Internal(_, name, _, _) => {
                 if let Some(n) = name {
                     write!(f, "%Function {}{{}}", **n.value())
