@@ -1,7 +1,10 @@
+use core::fmt;
+
 use ::{Context, Ptr, eval};
 
 use super::object::Object;
 use super::value::Value;
+use super::typ::Type;
 use super::list::List;
 use super::scope::Scope;
 use super::symbol::Symbol;
@@ -31,8 +34,17 @@ impl Function {
         Function::Internal(scope, name, args, body)
     }
 
+    #[inline(always)]
+    pub fn constructor(context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+        Self::generic_constructor(context.FunctionType, context, scope, args)
+    }
+    #[inline(always)]
+    pub fn macro_constructor(context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+        Self::generic_constructor(context.MacroType, context, scope, args)
+    }
+
     #[inline]
-    pub fn constructor(context: &Context, _scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+    pub fn generic_constructor(typ: Ptr<Object<Type>>, context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
         let name: Option<Ptr<Object<Symbol>>> = {
             let value = args.first(context);
 
@@ -62,8 +74,8 @@ impl Function {
 
         let body = args.first(context);
 
-        context.gc.new_object(context.FunctionType,
-            Function::new_internal(context.scope, name, arg_symbols, body)).as_value()
+        context.gc.new_object(typ,
+            Function::new_internal(scope, name, arg_symbols, body)).as_value()
     }
 }
 
@@ -94,6 +106,23 @@ impl Callable for Ptr<Object<Function>> {
 
                 eval(context, function_scope, body)
             },
+        }
+    }
+}
+
+impl fmt::Debug for Function {
+
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &Function::Rust(ref fn_ptr) => write!(f, "%Native Function {{}}"),
+            &Function::Internal(_, name, _, _) => {
+                if let Some(n) = name {
+                    write!(f, "%Function {}{{}}", **n.value())
+                } else {
+                    write!(f, "%Function {{}}")
+                }
+            }
         }
     }
 }

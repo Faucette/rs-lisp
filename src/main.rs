@@ -1,56 +1,48 @@
 extern crate lisp;
 
 
-use lisp::lang::*;
-use lisp::{eval, Context};
+use std::fs::File;
+use std::io::prelude::*;
 
+
+use lisp::lang::*;
+use lisp::{eval, Ptr, Context};
+
+
+
+pub fn add_uint64(context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+    let left = args.first(context);
+    args = args.pop(context);
+    let right = args.first(context);
+
+    if left.typ() == context.UInt64Type && right.typ() == context.UInt64Type {
+        let a = left.downcast::<Object<u64>>().unwrap();
+        let b = right.downcast::<Object<u64>>().unwrap();
+        context.gc.new_object(context.UInt64Type, a.value() + b.value()).as_value()
+    } else {
+        context.gc.new_object(context.UInt64Type, 0u64).as_value()
+    }
+}
 
 fn main() {
-    let context = Context::new();
-    let input = "(def add (Function (a, b) (number_add a, b))) (add 1, 1)".chars().collect();
+    let mut context = Context::new();
+    context.scope.set("add_uint64", context.gc.new_object(context.FunctionType, Function::new_rust(add_uint64)).as_value());
+
+    let mut file = File::open("tests/test.s").unwrap();
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).unwrap();
+    let input = contents.chars().collect();
+
     let mut reader = context.gc.new_object(context.ReaderType, Reader::new(&context, input));
     let mut values = reader.collect(&context, context.scope);
     let mut result = context.nil_value.as_value();
 
+    println!("\nAST: {:?}\n", values);
+
     while !values.is_empty(&context).value() {
         result = eval(&context, context.scope, values.first(&context));
-
-        if result.typ() == context.BooleanType {
-
-            println!("{:?}", result.downcast::<Object<bool>>().unwrap());
-
-        } if result.typ() == context.NilType {
-
-            println!("{:?}", result.downcast::<Object<Nil>>().unwrap());
-
-        } if result.typ() == context.SymbolType {
-
-            println!("{:?}", result.downcast::<Object<Symbol>>().unwrap());
-
-        } else if result.typ() == context.KeywordType {
-
-            println!("{:?}", result.downcast::<Object<Keyword>>().unwrap());
-
-        } else if result.typ() == context.Float64Type {
-
-            println!("{:?}", result.downcast::<Object<f64>>().unwrap());
-
-        }  else if result.typ() == context.Int64Type {
-
-            println!("{:?}", result.downcast::<Object<i64>>().unwrap());
-
-        } else if result.typ() == context.UInt64Type {
-
-            println!("{:?}", result.downcast::<Object<u64>>().unwrap());
-
-        } else {
-
-            println!("{:?}", result.typ());
-
-        }
-
         values = values.pop(&context);
     }
 
-    println!("Totel: {:?} bytes", context.gc.total());
+    println!("\nTotel: {:?} bytes\n", context.gc.total());
 }

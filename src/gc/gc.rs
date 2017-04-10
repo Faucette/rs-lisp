@@ -1,7 +1,7 @@
 use alloc::boxed::Box;
 use alloc::heap;
 
-use core::mem;
+use core::{fmt, mem};
 
 use collection_traits::*;
 use linked_list::LinkedList;
@@ -30,7 +30,7 @@ impl Gc {
     }
 
     #[inline(always)]
-    pub fn new_object<T: 'static>(&self, typ: Ptr<Object<Type>>, value: T) -> Ptr<Object<T>> {
+    pub fn new_object<T: 'static + fmt::Debug>(&self, typ: Ptr<Object<Type>>, value: T) -> Ptr<Object<T>> {
         let value = Box::into_raw(Box::new(Object::new(typ, value)));
 
 
@@ -43,7 +43,7 @@ impl Gc {
     }
 
     #[inline(always)]
-    pub fn new_null_typ_object<T: 'static>(&self, value: T) -> Ptr<Object<T>> {
+    pub fn new_null_typ_object<T: 'static + fmt::Debug>(&self, value: T) -> Ptr<Object<T>> {
         self.new_object(unsafe {mem::uninitialized()}, value)
     }
 }

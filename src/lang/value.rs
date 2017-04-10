@@ -1,10 +1,11 @@
+use core::fmt;
 use core::any::{Any, TypeId};
 
 use ::Ptr;
 use ::lang::{Object, Type};
 
 
-pub trait Value: Any {
+pub trait Value: Any + fmt::Debug {
     fn typ(&self) -> Ptr<Object<Type>>;
 }
 
@@ -29,5 +30,13 @@ impl Ptr<Value> {
         } else {
             None
         }
+    }
+}
+
+impl fmt::Debug for Ptr<Value> {
+
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", &**self)
     }
 }

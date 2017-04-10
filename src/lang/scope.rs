@@ -1,5 +1,7 @@
 use collections::string::String;
 
+use core::fmt;
+
 use collection_traits::*;
 use hash_map::HashMap;
 
@@ -11,9 +13,9 @@ use super::symbol::Symbol;
 
 
 pub struct Scope {
-    name: Option<Ptr<Object<Symbol>>>,
-    parent: Option<Ptr<Object<Scope>>>,
-    mappings: HashMap<String, Ptr<Value>>,
+    pub(crate) name: Option<Ptr<Object<Symbol>>>,
+    pub(crate) parent: Option<Ptr<Object<Scope>>>,
+    pub(crate) mappings: HashMap<String, Ptr<Value>>,
 }
 
 impl Scope {
@@ -78,6 +80,32 @@ impl Scope {
             scope.mappings.insert(string, value);
         } else {
             self.mappings.insert(string, value);
+        }
+    }
+}
+
+impl Ptr<Object<Scope>> {
+
+    #[inline]
+    pub fn get_first_named_scope(&self) -> Option<Ptr<Object<Scope>>> {
+        if self.name.is_some() {
+            Some(*self)
+        } else if let Some(ref parent) = self.parent {
+            parent.get_first_named_scope()
+        } else {
+            None
+        }
+    }
+}
+
+impl fmt::Debug for Scope {
+
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if let Some(name) = self.name {
+            write!(f, "%Scope {}{{}}", **name.value())
+        } else {
+            write!(f, "%Scope{{}}")
         }
     }
 }

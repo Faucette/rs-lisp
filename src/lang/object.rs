@@ -31,7 +31,7 @@ impl<T> Object<T> {
     }
 }
 
-impl<T: 'static> Ptr<Object<T>> {
+impl<T: 'static + fmt::Debug> Ptr<Object<T>> {
 
     #[inline(always)]
     pub fn as_value(&self) -> Ptr<Value> {
@@ -41,7 +41,7 @@ impl<T: 'static> Ptr<Object<T>> {
     }
 }
 
-impl<T: 'static> Value for Object<T> {
+impl<T: 'static + fmt::Debug> Value for Object<T> {
 
     #[inline(always)]
     fn typ(&self) -> Ptr<Object<Type>> {

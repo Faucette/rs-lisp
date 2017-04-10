@@ -7,13 +7,15 @@ use hash_map::HashMap;
 
 use ::Ptr;
 use ::Gc;
-use ::lang::{macros, Value, Object, Scope, Keyword, Symbol, List, Function, Nil, Reader, Type, TypeBuilder};
+use ::lang::{special_forms, Value, Object, Scope, Keyword, Symbol, List, Function, Nil, Reader, Type, TypeBuilder};
 
 
 #[allow(non_snake_case)]
 pub struct Context {
     pub AnyType: Ptr<Object<Type>>,
     pub TypeType: Ptr<Object<Type>>,
+
+    pub SpecialFormType: Ptr<Object<Type>>,
 
     pub FunctionType: Ptr<Object<Type>>,
     pub MacroType: Ptr<Object<Type>>,
@@ -77,12 +79,15 @@ impl Context {
         let mut FunctionType = gc.new_object(TypeType, TypeBuilder::new("Function")
             .size(mem::size_of::<Function>())
             .supr(AnyType).build());
+        let mut SpecialFormType = gc.new_object(TypeType, TypeBuilder::new("SpecialForm")
+            .size(mem::size_of::<Function>())
+            .supr(AnyType).build());
         let mut MacroType = gc.new_object(TypeType, TypeBuilder::new("Macro")
             .size(mem::size_of::<Function>())
             .supr(AnyType).build());
 
         FunctionType.value.constructor = Some(gc.new_object(FunctionType, Function::new_rust(Function::constructor)));
-        MacroType.value.constructor = Some(gc.new_object(FunctionType, Function::new_rust(Function::constructor)));
+        MacroType.value.constructor = Some(gc.new_object(FunctionType, Function::new_rust(Function::macro_constructor)));
 
         TypeType.value.constructor = Some(gc.new_object(FunctionType, Function::new_rust(Type::constructor)));
 
@@ -176,13 +181,19 @@ impl Context {
         let false_value = gc.new_object(BooleanType, false);
         let nil_value = gc.new_object(NilType, Nil::new());
 
-        let mut scope = gc.new_object(ScopeType, Scope::new(None, None));
+        let mut namespaces = HashMap::new();
+
+        let mut scope = gc.new_object(ScopeType,
+            Scope::new(Some(gc.new_object(SymbolType, Symbol::new("user".into()))), None));
+
+        namespaces.insert("user".into(), scope);
 
         scope.set("Type", TypeType.as_value());
         scope.set("Any", AnyType.as_value());
 
         // scope.set("Scope", ScopeType.as_value());
         scope.set("Function", FunctionType.as_value());
+        scope.set("Fn", FunctionType.as_value());
         scope.set("Macro", MacroType.as_value());
         scope.set("Nil", NilType.as_value());
 
@@ -218,17 +229,17 @@ impl Context {
         scope.set("false", false_value.as_value());
         scope.set("nil", nil_value.as_value());
 
-        scope.set("def", gc.new_object(MacroType, Function::new_rust(macros::def)).as_value());
-        scope.set("quote", gc.new_object(MacroType, Function::new_rust(macros::quote)).as_value());
-        scope.set("if", gc.new_object(MacroType, Function::new_rust(macros::_if)).as_value());
-        scope.set("let", gc.new_object(MacroType, Function::new_rust(macros::_let)).as_value());
-        scope.set("throw", gc.new_object(MacroType, Function::new_rust(macros::throw)).as_value());
-
-        scope.set("number_add", gc.new_object(FunctionType, Function::new_rust(add)).as_value());
+        scope.set("def", gc.new_object(SpecialFormType, Function::new_rust(special_forms::def)).as_value());
+        scope.set("quote", gc.new_object(SpecialFormType, Function::new_rust(special_forms::quote)).as_value());
+        scope.set("if", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_if)).as_value());
+        scope.set("let", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_let)).as_value());
+        scope.set("throw", gc.new_object(SpecialFormType, Function::new_rust(special_forms::throw)).as_value());
 
         Context {
             AnyType: AnyType,
             TypeType: TypeType,
+
+            SpecialFormType: SpecialFormType,
 
             FunctionType: FunctionType,
             MacroType: MacroType,
@@ -267,24 +278,11 @@ impl Context {
             nil_value: nil_value,
             true_value: true_value,
             false_value: false_value,
-            namespaces: HashMap::new(),
+
+            namespaces: namespaces,
             scope: scope,
             gc: gc,
         }
-    }
-}
-
-pub fn add(context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
-    let left = args.first(context);
-    args = args.pop(context);
-    let right = args.first(context);
-
-    if left.typ() == context.UInt64Type && right.typ() == context.UInt64Type {
-        let a = left.downcast::<Object<u64>>().unwrap();
-        let b = right.downcast::<Object<u64>>().unwrap();
-        context.gc.new_object(context.UInt64Type, a.value() + b.value()).as_value()
-    } else {
-        context.gc.new_object(context.UInt64Type, 0u64).as_value()
     }
 }
 

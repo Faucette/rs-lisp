@@ -27,23 +27,33 @@ fn eval_list(context: &Context, scope: Ptr<Object<Scope>>, mut list: Ptr<Object<
     list = list.pop(context);
 
     if callable.typ() == context.FunctionType {
+
         let function = callable.downcast::<Object<Function>>().unwrap();
         let args = eval_arguments(context, scope, list);
         function.call(context, scope, args)
+
     } else if callable.typ() == context.MacroType {
+
+        let function = callable.downcast::<Object<Function>>().unwrap();
+        eval(context, scope, function.call(context, scope, list))
+
+    } else if callable.typ() == context.SpecialFormType {
+
         let function = callable.downcast::<Object<Function>>().unwrap();
         function.call(context, scope, list)
+
     } else if callable.typ() == context.TypeType {
+
         let typ = callable.downcast::<Object<Type>>().unwrap();
 
         if typ.is_abstract() {
             panic!("can not create abstract type") // TODO throw runtime exception
         } else {
-            typ.constructor.expect("failed to get constructor").call(context, scope, list)
+            let args = eval_arguments(context, scope, list);
+            typ.constructor.unwrap().call(context, scope, args)
         }
     } else {
-        panic!("no such function `{:?}`",
-            symbol.downcast::<Object<Symbol>>().unwrap().value()) // TODO throw runtime exception
+        panic!("can not call {:?} as function", callable)
     }
 }
 

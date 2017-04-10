@@ -1,3 +1,5 @@
+use core::fmt;
+
 use collection_traits::*;
 use vector::Vector;
 
@@ -6,9 +8,10 @@ use ::Context;
 use ::lang::{Value, Object, Callable, Function, Scope, List};
 
 use super::list_reader::list_reader;
-use super::symbol_reader::symbol_reader;
-use super::whitespace_reader::whitespace_reader;
 use super::number_reader::number_reader;
+use super::symbol_reader::symbol_reader;
+use super::quote_reader::quote_reader;
+use super::whitespace_reader::whitespace_reader;
 
 
 pub struct Reader {
@@ -28,17 +31,11 @@ impl Reader {
     pub fn new(context: &Context, input: Vector<char>) -> Self {
         let mut readers = Vector::new();
 
-        readers.push(context.gc.new_object(context.FunctionType,
-            Function::new_rust(whitespace_reader as fn(&Context, Ptr<Object<Scope>>, Ptr<Object<List>>) -> Ptr<Value>)));
-
-        readers.push(context.gc.new_object(context.FunctionType,
-            Function::new_rust(list_reader as fn(&Context, Ptr<Object<Scope>>, Ptr<Object<List>>) -> Ptr<Value>)));
-
-        readers.push(context.gc.new_object(context.FunctionType,
-            Function::new_rust(number_reader as fn(&Context, Ptr<Object<Scope>>, Ptr<Object<List>>) -> Ptr<Value>)));
-
-        readers.push(context.gc.new_object(context.FunctionType,
-            Function::new_rust(symbol_reader as fn(&Context, Ptr<Object<Scope>>, Ptr<Object<List>>) -> Ptr<Value>)));
+        readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(whitespace_reader)));
+        readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(list_reader)));
+        readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(number_reader)));
+        readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(quote_reader)));
+        readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(symbol_reader)));
 
         Reader {
             readers: readers,
@@ -134,5 +131,13 @@ impl Ptr<Object<Reader>> {
         }
 
         list
+    }
+}
+
+impl fmt::Debug for Reader {
+
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "%Reader{{}}")
     }
 }

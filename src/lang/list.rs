@@ -1,3 +1,5 @@
+use core::fmt;
+
 use ::Ptr;
 use ::Context;
 
@@ -25,6 +27,14 @@ impl Node {
     }
 }
 
+impl fmt::Debug for Node {
+
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "%Node{{}}")
+    }
+}
+
 
 pub struct List {
     root: Option<Ptr<Object<Node>>>,
@@ -48,7 +58,28 @@ impl List {
 
     #[inline]
     pub fn constructor(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
-        args.pop(context).as_value()
+        args.as_value()
+    }
+
+    #[inline(always)]
+    pub fn size(&self) -> usize {
+        *self.size.value() as usize
+    }
+
+    #[inline]
+    fn find_node(&self, index: usize) -> Option<Ptr<Object<Node>>> {
+        if index < self.size() {
+            let mut node = self.root;
+            let mut i = 0;
+
+            while i < index {
+                node.map(|n| node = (**n).next);
+                i += 1;
+            }
+            node
+        } else {
+            None
+        }
     }
 }
 
@@ -65,6 +96,14 @@ impl Ptr<Object<List>> {
             context.true_value
         } else {
             context.false_value
+        }
+    }
+
+    #[inline(always)]
+    fn nth(&self, context: &Context, index: Ptr<Object<usize>>) -> Ptr<Value> {
+        match self.find_node(*index.value()) {
+            Some(ref node) => node.data,
+            None => context.nil_value.as_value(),
         }
     }
 
@@ -133,5 +172,27 @@ impl Ptr<Object<List>> {
             Some(ref tail) => tail.data,
             None => context.nil_value.as_value(),
         }
+    }
+}
+
+impl fmt::Debug for List {
+
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut node = self.root;
+
+        write!(f, "(");
+        while let Some(n) = node {
+            let value = n.data;
+
+            node = n.next;
+
+            if node.is_none() {
+                write!(f, "{:?}", value);
+            } else {
+                write!(f, "{:?} ", value);
+            }
+        }
+        write!(f, ")")
     }
 }
