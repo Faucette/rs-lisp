@@ -42,11 +42,19 @@ impl Symbol {
     }
 }
 
+impl fmt::Display for Symbol {
+
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", &self.value)
+    }
+}
+
 impl fmt::Debug for Symbol {
 
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.value)
+        fmt::Display::fmt(self, f)
     }
 }
 

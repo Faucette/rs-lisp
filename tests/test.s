@@ -22,5 +22,4 @@
 
 (fac 5)
 
-vec_a
-vec_b
+(print, vec_a, vec_b, vec_c)

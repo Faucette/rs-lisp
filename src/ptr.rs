@@ -1,5 +1,7 @@
 use alloc::boxed::Box;
 
+use collections::string::String;
+
 use core::{fmt, ptr};
 use core::ops::{Deref, DerefMut};
 use core::hash::{Hash, Hasher};
@@ -42,11 +44,31 @@ impl<T: ?Sized> Ptr<T> {
     pub unsafe fn as_ptr(&self) -> *mut T {
         self.ptr
     }
+
+    #[inline(always)]
+    pub fn as_ref(&self) -> &T {
+        unsafe {
+            &*(self.ptr as *const T)
+        }
+    }
+
+    #[inline(always)]
+    pub fn as_mut(&mut self) -> &mut T {
+        unsafe {
+            &mut *(self.ptr as *mut T)
+        }
+    }
 }
 
 impl<T: fmt::Debug> fmt::Debug for Ptr<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", unsafe {&*self.ptr})
+        write!(f, "{:?}", self.as_ref())
+    }
+}
+
+impl<T: fmt::Display> fmt::Display for Ptr<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.as_ref())
     }
 }
 
@@ -55,9 +77,7 @@ impl<T: ?Sized> Deref for Ptr<T> {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
-        unsafe {
-            &*(self.ptr as *const T)
-        }
+        self.as_ref()
     }
 }
 
@@ -65,9 +85,7 @@ impl<T: ?Sized> DerefMut for Ptr<T> {
 
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe {
-            &mut *(self.ptr as *mut T)
-        }
+        self.as_mut()
     }
 }
 
@@ -97,9 +115,7 @@ impl<T: ?Sized + Hash> Hash for Ptr<T> {
 
     #[inline(always)]
     fn hash<H: Hasher>(&self, state: &mut H) {
-        unsafe {
-            (&*self.ptr).hash(state);
-        }
+        self.as_ref().hash(state);
     }
 }
 

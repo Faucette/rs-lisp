@@ -1,3 +1,5 @@
+use collections::string::String;
+
 use core::fmt;
 
 use collection_traits::*;
@@ -149,10 +151,19 @@ impl Ptr<Object<Reader>> {
     }
 }
 
+impl fmt::Display for Reader {
+
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let string: String = self.input.iter().collect();
+        write!(f, "(Reader {:?})", string)
+    }
+}
+
 impl fmt::Debug for Reader {
 
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "%Reader{{}}")
+        fmt::Display::fmt(self, f)
     }
 }

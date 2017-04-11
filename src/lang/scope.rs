@@ -98,14 +98,22 @@ impl Ptr<Object<Scope>> {
     }
 }
 
-impl fmt::Debug for Scope {
+impl fmt::Display for Scope {
 
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if let Some(name) = self.name {
-            write!(f, "%Scope {}{{}}", **name.value())
+            write!(f, "(Scope {:?})", name)
         } else {
-            write!(f, "%Scope{{}}")
+            write!(f, "(Scope)")
         }
+    }
+}
+
+impl fmt::Debug for Scope {
+
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt(self, f)
     }
 }

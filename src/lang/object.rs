@@ -1,3 +1,5 @@
+use collections::string::String;
+
 use core::fmt;
 use core::ops::{Deref, DerefMut};
 use core::hash::{Hash, Hasher};
@@ -6,14 +8,13 @@ use ::{Context, Ptr};
 use ::lang::{Value, Type, List, Callable, Scope};
 
 
-#[derive(Clone)]
 pub struct Object<T> {
     pub(crate) typ: Ptr<Object<Type>>,
     pub(crate) value: T,
 }
 
-unsafe impl<T: Sync + Send> Send for Object<T> {}
-unsafe impl<T: Send + Sync> Sync for Object<T> {}
+unsafe impl<T> Send for Object<T> {}
+unsafe impl<T> Sync for Object<T> {}
 
 impl<T> Object<T> {
 
@@ -61,9 +62,15 @@ impl<T: Callable> Callable for Object<T> {
     }
 }
 
+impl<T: fmt::Display> fmt::Display for Object<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt(&self.value(), f)
+    }
+}
+
 impl<T: fmt::Debug> fmt::Debug for Object<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self.value)
+        fmt::Debug::fmt(&self.value(), f)
     }
 }
 

@@ -41,11 +41,19 @@ impl Keyword {
     }
 }
 
+impl fmt::Display for Keyword {
+
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, ":{}", self.value)
+    }
+}
+
 impl fmt::Debug for Keyword {
 
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.value)
+        fmt::Display::fmt(self, f)
     }
 }
 

@@ -122,9 +122,17 @@ impl PartialEq for Type {
     }
 }
 
-impl fmt::Debug for Type {
+impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "%{}{{}}", self.name)
+        write!(f, "{}", self.name)
+    }
+}
+
+impl fmt::Debug for Type {
+
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt(self, f)
     }
 }
 

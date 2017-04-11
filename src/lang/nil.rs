@@ -1,3 +1,5 @@
+use collections::string::String;
+
 use core::fmt;
 
 use ::{Context, Ptr};
@@ -22,11 +24,17 @@ impl Nil {
     }
 }
 
-
-
-impl fmt::Debug for Nil {
+impl fmt::Display for Nil {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "nil")
+    }
+}
+
+impl fmt::Debug for Nil {
+
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt(self, f)
     }
 }

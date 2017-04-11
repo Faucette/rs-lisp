@@ -1,3 +1,5 @@
+use collections::string::{String, ToString};
+
 use core::fmt;
 use core::any::{Any, TypeId};
 
@@ -33,10 +35,14 @@ impl Ptr<Value> {
     }
 }
 
-impl fmt::Debug for Ptr<Value> {
-
-    #[inline]
+impl fmt::Display for Ptr<Value> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", &**self)
+        fmt::Debug::fmt(&**self, f)
+    }
+}
+
+impl fmt::Debug for Ptr<Value> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(&**self, f)
     }
 }

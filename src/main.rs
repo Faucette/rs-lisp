@@ -10,20 +10,27 @@ use lisp::{eval, Ptr, Context};
 
 
 
-pub fn lisp_print(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+pub fn lisp_to_string(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+    let mut string = String::new();
 
     loop {
-        print!("{:?}", args.first(context));
+        string.push_str(&args.first(context).to_string());
         args = args.pop(context);
 
         if *args.is_empty(context).value() {
             break;
         } else {
-            print!(", ");
+            string.push(',');
+            string.push(' ');
         }
     }
-    println!("");
 
+    context.gc.new_object(context.StringType, string).as_value()
+}
+
+pub fn lisp_print(context: &Context, scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
+    let string = lisp_to_string(context, scope, args);
+    println!("{}", string);
     context.nil_value.as_value()
 }
 
@@ -101,9 +108,11 @@ fn main() {
 
     let vec_a = context.gc.new_object(context.VectorType, Vector::new(&context));
     let vec_b = vec_a.push(&context, context.true_value.as_value());
+    let vec_c = vec_b.push(&context, context.false_value.as_value());
 
     context.scope.set("vec_a", vec_a.as_value());
     context.scope.set("vec_b", vec_b.as_value());
+    context.scope.set("vec_c", vec_c.as_value());
 
     let mut file = File::open("tests/test.s").unwrap();
     let mut contents = String::new();

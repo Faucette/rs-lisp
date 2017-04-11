@@ -1,3 +1,5 @@
+use collections::string::String;
+
 use core::fmt;
 
 use ::{Context, Ptr, eval};
@@ -114,19 +116,27 @@ impl Callable for Ptr<Object<Function>> {
     }
 }
 
-impl fmt::Debug for Function {
+impl fmt::Display for Function {
 
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Function::Rust(_) => write!(f, "%Native Function {{}}"),
-            &Function::Internal(_, name, _, _) => {
+            &Function::Rust(_) => write!(f, ":native_function"),
+            &Function::Internal(_, name, args, body) => {
                 if let Some(n) = name {
-                    write!(f, "%Function {}{{}}", **n.value())
+                    write!(f, "(fn {} {} {})", n, args, body)
                 } else {
-                    write!(f, "%Function {{}}")
+                    write!(f, "(fn {} {})", args, body)
                 }
             }
         }
+    }
+}
+
+impl fmt::Debug for Function {
+
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt(self, f)
     }
 }

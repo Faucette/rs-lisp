@@ -1,3 +1,5 @@
+use collections::string::String;
+
 use core::fmt;
 
 use ::{Context, Ptr};
@@ -167,15 +169,29 @@ impl Vector {
     }
 }
 
+impl fmt::Display for Vector {
+
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let size = self.size();
+
+        write!(f, "[")?;
+        for i in 0..size {
+            if i != (size - 1) {
+                write!(f, "{} ", self.get_unchecked(i))?;
+            } else {
+                write!(f, "{}", self.get_unchecked(i))?;
+            }
+        }
+        write!(f, "]")
+    }
+}
+
 impl fmt::Debug for Vector {
 
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "[")?;
-        for i in 0..self.size() {
-            write!(f, "{:?}", self.get_unchecked(i))?;
-        }
-        write!(f, "]")
+        fmt::Display::fmt(self, f)
     }
 }
 

@@ -59,7 +59,7 @@ fn eval_fn(context: &Context, scope: Ptr<Object<Scope>>, symbol: Ptr<Value>, cal
             eval_fn(context, scope, typ.as_value(), typ.constructor.unwrap().as_value(), list)
         }
     } else {
-        panic!("can not call {:?} which is {:?} as function", symbol, callable)
+        panic!("can not call {} which is {} as function", symbol, callable)
     }
 }
 

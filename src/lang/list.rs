@@ -1,3 +1,5 @@
+use collections::string::String;
+
 use core::fmt;
 
 use ::Ptr;
@@ -27,11 +29,19 @@ impl Node {
     }
 }
 
+impl fmt::Display for Node {
+
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, ":list_node")
+    }
+}
+
 impl fmt::Debug for Node {
 
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "%Node{{}}")
+        fmt::Display::fmt(self, f)
     }
 }
 
@@ -175,7 +185,7 @@ impl Ptr<Object<List>> {
     }
 }
 
-impl fmt::Debug for List {
+impl fmt::Display for List {
 
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -194,5 +204,13 @@ impl fmt::Debug for List {
             }
         }
         write!(f, ")")
+    }
+}
+
+impl fmt::Debug for List {
+
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt(self, f)
     }
 }
