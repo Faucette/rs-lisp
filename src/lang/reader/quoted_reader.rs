@@ -2,9 +2,8 @@ use collections::string::String;
 
 use ::Ptr;
 use ::Context;
-use ::lang::{Value, Object, Keyword, Symbol, Scope, List};
+use ::lang::{Value, Object, Scope, List};
 use super::reader::Reader;
-use super::utils;
 
 
 pub fn quoted_reader(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {

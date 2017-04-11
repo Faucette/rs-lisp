@@ -29,6 +29,10 @@ impl<T> Object<T> {
     pub fn value(&self) -> &T {
         &self.value
     }
+    #[inline(always)]
+    pub fn value_mut(&mut self) -> &mut T {
+        &mut self.value
+    }
 }
 
 impl<T: 'static + fmt::Debug> Ptr<Object<T>> {

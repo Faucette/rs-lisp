@@ -7,7 +7,7 @@ use hash_map::HashMap;
 
 use ::Ptr;
 use ::Gc;
-use ::lang::{special_forms, Value, Object, Scope, Keyword, Symbol, List, Function, Nil, Reader, Type, TypeBuilder};
+use ::lang::{special_forms, Value, Object, Scope, Keyword, Symbol, List, Vector, Function, Nil, Reader, Type, TypeBuilder};
 
 
 #[allow(non_snake_case)]
@@ -25,6 +25,7 @@ pub struct Context {
     pub ReaderType: Ptr<Object<Type>>,
 
     pub ListType: Ptr<Object<Type>>,
+    pub VectorType: Ptr<Object<Type>>,
 
     pub SymbolType: Ptr<Object<Type>>,
     pub KeywordType: Ptr<Object<Type>>,
@@ -84,11 +85,11 @@ impl Context {
         FunctionType.value.constructor = Some(gc.new_object(FunctionType,
             Function::new_rust(Function::constructor)));
 
-        let mut SpecialFormType = gc.new_object(TypeType, TypeBuilder::new("SpecialForm")
+        let SpecialFormType = gc.new_object(TypeType, TypeBuilder::new("SpecialForm")
             .size(mem::size_of::<Function>())
             .constructor(gc.new_object(FunctionType, Function::new_rust(Function::special_form_constructor)))
             .supr(AnyType).build());
-        let mut MacroType = gc.new_object(TypeType, TypeBuilder::new("Macro")
+        let MacroType = gc.new_object(TypeType, TypeBuilder::new("Macro")
             .size(mem::size_of::<Function>())
             .constructor(gc.new_object(FunctionType, Function::new_rust(Function::macro_constructor)))
             .supr(AnyType).build());
@@ -112,6 +113,11 @@ impl Context {
             .supr(AnyType)
             .size(mem::size_of::<List>())
             .constructor(gc.new_object(FunctionType, Function::new_rust(List::constructor)))
+            .build());
+        let VectorType = gc.new_object(TypeType, TypeBuilder::new("Vector")
+            .supr(AnyType)
+            .size(mem::size_of::<Vector>())
+            .constructor(gc.new_object(FunctionType, Function::new_rust(Vector::constructor)))
             .build());
 
         let SymbolType = gc.new_object(TypeType, TypeBuilder::new("Symbol")
@@ -209,6 +215,7 @@ impl Context {
         scope.set("Reader", ReaderType.as_value());
 
         scope.set("List", ListType.as_value());
+        scope.set("Vector", VectorType.as_value());
 
         scope.set("Symbol", SymbolType.as_value());
         scope.set("Keyword", KeywordType.as_value());
@@ -263,6 +270,7 @@ impl Context {
             ReaderType: ReaderType,
 
             ListType: ListType,
+            VectorType: VectorType,
 
             SymbolType: SymbolType,
             KeywordType: KeywordType,

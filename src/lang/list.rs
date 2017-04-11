@@ -92,7 +92,7 @@ impl Ptr<Object<List>> {
 
     #[inline(always)]
     pub fn is_empty(&self, context: &Context) -> Ptr<Object<bool>> {
-        if **self.size == 0 {
+        if self.size.value() == &0 {
             context.true_value
         } else {
             context.false_value

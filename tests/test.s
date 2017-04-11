@@ -21,3 +21,6 @@
     (int_mul x (fac (int_sub x 1)))))
 
 (fac 5)
+
+vec_a
+vec_b

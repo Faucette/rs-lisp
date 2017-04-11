@@ -10,6 +10,7 @@ mod scope;
 mod symbol;
 mod typ;
 mod value;
+mod vector;
 
 
 pub use self::reader::Reader;
@@ -23,3 +24,4 @@ pub use self::scope::Scope;
 pub use self::symbol::Symbol;
 pub use self::typ::{Type, TypeBuilder};
 pub use self::value::Value;
+pub use self::vector::Vector;
