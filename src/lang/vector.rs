@@ -94,7 +94,7 @@ impl Vector {
     }
 
     fn copy_array(
-        mut a: Ptr<Object<[Ptr<Value>; SIZE]>>,
+        a: Ptr<Object<[Ptr<Value>; SIZE]>>,
         mut b: Ptr<Object<[Ptr<Value>; SIZE]>>,
         length: usize
     ) -> Ptr<Object<[Ptr<Value>; SIZE]>> {

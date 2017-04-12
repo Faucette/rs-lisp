@@ -1,6 +1,6 @@
-use collections::string::String;
+use collections::string::{String, ToString};
 
-use core::{fmt, ptr};
+use core::{fmt, mem, ptr};
 
 use vector::Vector;
 
@@ -13,6 +13,7 @@ use super::list::List;
 use super::symbol::Symbol;
 use super::keyword::Keyword;
 use super::scope::Scope;
+use super::_struct::Struct;
 
 
 pub struct Type {
@@ -85,12 +86,15 @@ impl Type {
             }
         };
 
-        let typ = {
+        let typ_value = {
             let value = args.first(context);
 
             if value.typ() == context.ListType {
+                let list = value.downcast::<Object<List>>().unwrap();
 
                 TypeBuilder::new(name.as_str())
+                    .size(mem::size_of::<Struct>())
+                    .fields(list.iter().map(|v| Struct::key_to_string(context, &v)).collect())
                     .supr(supr).build()
 
             } else if value.typ() == context.UInt64Type {
@@ -106,11 +110,13 @@ impl Type {
                 TypeBuilder::new(name.as_str())
                     .supr(supr).is_abstract().build()
             } else {
-                panic!("invalid type argument should be list uint or keyword") // TODO throw runtime exception
+                panic!("invalid type argument should be List, UInt64, or Keyword") // TODO throw runtime exception
             }
         };
 
-        context.gc.new_object(context.TypeType, typ).as_value()
+        let mut typ = context.gc.new_object(context.TypeType, typ_value);
+        typ.value.constructor = Some(context.gc.new_object(context.FunctionType, Function::new_constructor(typ)));
+        typ.as_value()
     }
 }
 
@@ -124,7 +130,10 @@ impl PartialEq for Type {
 
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.name)
+        match self.fields {
+            Some(ref fields) => write!(f, "({} {:?})", self.name, fields),
+            None => write!(f, "({})", self.name)
+        }
     }
 }
 

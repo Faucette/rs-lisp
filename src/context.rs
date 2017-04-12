@@ -253,6 +253,7 @@ impl Context {
         scope.set("if", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_if)).as_value());
         scope.set("let", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_let)).as_value());
         scope.set("macro", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_macro)).as_value());
+        scope.set("type", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_type)).as_value());
         scope.set("def", gc.new_object(SpecialFormType, Function::new_rust(special_forms::def)).as_value());
         scope.set("quote", gc.new_object(SpecialFormType, Function::new_rust(special_forms::quote)).as_value());
         scope.set("throw", gc.new_object(SpecialFormType, Function::new_rust(special_forms::throw)).as_value());

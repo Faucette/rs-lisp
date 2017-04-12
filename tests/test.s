@@ -8,6 +8,9 @@
 (defmacro defn (name, args, body)
   (List `def name (List `fn name args body)))
 
+(defmacro deftype (name, super, value)
+  (List `def name (List `type name super value)))
+
 (defn add (a, b)
   (add_uint64 a, b))
 
@@ -28,3 +31,7 @@
   (print vec_a)
   (print vec_b)
   (print vec_c))
+
+(deftype Person (age, name))
+
+(Person 10, "Bob")

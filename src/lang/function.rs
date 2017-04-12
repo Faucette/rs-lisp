@@ -7,12 +7,14 @@ use super::value::Value;
 use super::typ::Type;
 use super::list::List;
 use super::scope::Scope;
+use super::_struct::Struct;
 use super::symbol::Symbol;
 use super::keyword::Keyword;
 use super::callable::Callable;
 
 
 pub enum Function {
+    Constructor(Ptr<Object<Type>>),
     Rust(fn(&Context, Ptr<Object<Scope>>, Ptr<Object<List>>) -> Ptr<Value>),
     Internal(Ptr<Object<Scope>>, Option<Ptr<Object<Symbol>>>, Ptr<Object<List>>, Ptr<Value>),
 }
@@ -22,6 +24,11 @@ impl Function {
     #[inline(always)]
     pub fn new_rust(fn_ptr: fn(&Context, Ptr<Object<Scope>>, Ptr<Object<List>>) -> Ptr<Value>) -> Self {
         Function::Rust(fn_ptr)
+    }
+
+    #[inline(always)]
+    pub fn new_constructor(typ: Ptr<Object<Type>>) -> Self {
+        Function::Constructor(typ)
     }
 
     #[inline(always)]
@@ -88,6 +95,7 @@ impl Callable for Ptr<Object<Function>> {
     #[inline]
     fn call(&self, context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
         match &***self {
+            &Function::Constructor(typ) => Struct::constructor(context, typ, args),
             &Function::Rust(ref fn_ptr) => Callable::call(fn_ptr, context, scope, args),
             &Function::Internal(scope, name, mut arg_symbols, body) => {
                 let mut function_scope =
@@ -119,6 +127,7 @@ impl fmt::Display for Function {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            &Function::Constructor(_) => write!(f, ":constructor_function"),
             &Function::Rust(_) => write!(f, ":native_function"),
             &Function::Internal(_, name, args, body) => {
                 if let Some(n) = name {
