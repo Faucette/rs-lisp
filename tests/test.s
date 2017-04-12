@@ -22,4 +22,9 @@
 
 (fac 5)
 
-(print, vec_a, vec_b, vec_c)
+[0, 1, 2, 3, 4]
+
+(do
+  (print vec_a)
+  (print vec_b)
+  (print vec_c))

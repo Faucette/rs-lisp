@@ -1,5 +1,3 @@
-use collections::string::String;
-
 use core::fmt;
 
 use ::{Context, Ptr};
@@ -45,8 +43,14 @@ impl Vector {
     }
 
     #[inline]
-    pub fn constructor(context: &Context, _scope: Ptr<Object<Scope>>, _args: Ptr<Object<List>>) -> Ptr<Value> {
-        context.gc.new_object(context.VectorType, Self::new(context)).as_value()
+    pub fn constructor(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
+        let mut vector = Self::new(context);
+
+        for value in args.iter() {
+            vector.push_mut(context, value);
+        }
+
+        context.gc.new_object(context.VectorType, vector).as_value()
     }
 
     #[inline(always)]
@@ -168,7 +172,7 @@ impl Vector {
     }
 
     #[inline]
-    fn push_mut(&mut self, context: &Context, value: Ptr<Value>) {
+    pub(crate) fn push_mut(&mut self, context: &Context, value: Ptr<Value>) {
         let root = self.root;
         let size = self.size();
         let shift = self.shift;

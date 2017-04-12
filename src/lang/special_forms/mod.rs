@@ -1,3 +1,4 @@
+mod _do;
 mod _fn;
 mod _if;
 mod _let;
@@ -7,6 +8,7 @@ mod quote;
 mod throw;
 
 
+pub use self::_do::_do;
 pub use self::_fn::_fn;
 pub use self::_if::_if;
 pub use self::_let::_let;

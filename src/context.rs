@@ -248,6 +248,7 @@ impl Context {
         scope.set("false", false_value.as_value());
         scope.set("nil", nil_value.as_value());
 
+        scope.set("do", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_do)).as_value());
         scope.set("fn", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_fn)).as_value());
         scope.set("if", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_if)).as_value());
         scope.set("let", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_let)).as_value());

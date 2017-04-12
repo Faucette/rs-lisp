@@ -14,6 +14,7 @@ use super::list_reader::list_reader;
 use super::number_reader::number_reader;
 use super::quote_reader::quote_reader;
 use super::quoted_reader::quoted_reader;
+use super::vector_reader::vector_reader;
 use super::whitespace_reader::whitespace_reader;
 
 
@@ -36,6 +37,7 @@ impl Reader {
 
         readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(whitespace_reader)));
         readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(list_reader)));
+        readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(vector_reader)));
         readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(number_reader)));
         readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(quote_reader)));
         readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(quoted_reader)));
