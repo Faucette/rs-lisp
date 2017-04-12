@@ -185,6 +185,46 @@ impl Ptr<Object<List>> {
     }
 }
 
+pub struct ListIter {
+    head: Option<Ptr<Object<Node>>>,
+    tail: Option<Ptr<Object<Node>>>,
+    size: usize,
+}
+
+impl Clone for ListIter {
+
+    #[inline(always)]
+    fn clone(&self) -> Self {
+        ListIter {
+            head: self.head,
+            tail: self.tail,
+            size: self.size,
+        }
+    }
+}
+
+impl Iterator for ListIter {
+    type Item = Ptr<Value>;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.size == 0 {
+            None
+        } else {
+            self.head.map(|node| unsafe {
+                self.size -= 1;
+                self.head = node.next;
+                &node.data
+            })
+        }
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.size, Some(self.size))
+    }
+}
+
 impl fmt::Display for List {
 
     #[inline]
