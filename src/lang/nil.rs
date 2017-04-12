@@ -1,5 +1,3 @@
-use collections::string::String;
-
 use core::fmt;
 
 use ::{Context, Ptr};

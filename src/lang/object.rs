@@ -1,5 +1,3 @@
-use collections::string::String;
-
 use core::fmt;
 use core::ops::{Deref, DerefMut};
 use core::hash::{Hash, Hasher};

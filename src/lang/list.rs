@@ -1,5 +1,3 @@
-use collections::string::String;
-
 use core::fmt;
 
 use ::Ptr;
@@ -89,6 +87,14 @@ impl List {
             node
         } else {
             None
+        }
+    }
+
+    #[inline(always)]
+    pub fn iter(&self) -> ListIter {
+        ListIter {
+            root: self.root,
+            size: self.size(),
         }
     }
 }
@@ -186,21 +192,8 @@ impl Ptr<Object<List>> {
 }
 
 pub struct ListIter {
-    head: Option<Ptr<Object<Node>>>,
-    tail: Option<Ptr<Object<Node>>>,
+    root: Option<Ptr<Object<Node>>>,
     size: usize,
-}
-
-impl Clone for ListIter {
-
-    #[inline(always)]
-    fn clone(&self) -> Self {
-        ListIter {
-            head: self.head,
-            tail: self.tail,
-            size: self.size,
-        }
-    }
 }
 
 impl Iterator for ListIter {
@@ -211,10 +204,10 @@ impl Iterator for ListIter {
         if self.size == 0 {
             None
         } else {
-            self.head.map(|node| unsafe {
+            self.root.map(|node| {
                 self.size -= 1;
-                self.head = node.next;
-                &node.data
+                self.root = node.next;
+                node.data
             })
         }
     }
@@ -229,18 +222,15 @@ impl fmt::Display for List {
 
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut node = self.root;
-
         write!(f, "(")?;
-        while let Some(n) = node {
-            let value = n.data;
+        let mut it = self.iter();
+        while let Some(value) = it.next() {
+            let (size, _) = it.size_hint();
 
-            node = n.next;
-
-            if node.is_none() {
-                write!(f, "{:?}", value)?;
-            } else {
+            if size > 0 {
                 write!(f, "{:?} ", value)?;
+            } else {
+                write!(f, "{:?}", value)?;
             }
         }
         write!(f, ")")

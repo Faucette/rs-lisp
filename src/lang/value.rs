@@ -1,5 +1,3 @@
-use collections::string::{String, ToString};
-
 use core::fmt;
 use core::any::{Any, TypeId};
 

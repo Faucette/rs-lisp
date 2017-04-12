@@ -27,8 +27,8 @@ impl Vector {
     #[inline]
     pub fn new(context: &Context) -> Self {
         Vector {
-            root: create_array(context),
-            tail: create_array(context),
+            root: Self::create_array(context),
+            tail: Self::create_array(context),
             size: context.gc.new_object(context.UInt64Type, 0u64),
             shift: SHIFT,
         }
@@ -45,7 +45,7 @@ impl Vector {
     }
 
     #[inline]
-    pub fn constructor(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
+    pub fn constructor(context: &Context, _scope: Ptr<Object<Scope>>, _args: Ptr<Object<List>>) -> Ptr<Value> {
         context.gc.new_object(context.VectorType, Self::new(context)).as_value()
     }
 
@@ -56,7 +56,7 @@ impl Vector {
 
     #[inline]
     fn get_array(&self, index: usize) -> Ptr<Object<[Ptr<Value>; SIZE]>> {
-        if index >= tail_off(self.size()) {
+        if index >= Self::tail_off(self.size()) {
             self.tail
         } else {
             let mut array = self.root;
@@ -77,13 +77,45 @@ impl Vector {
         self.get_array(index)[index & MASK]
     }
 
+    fn tail_off(size: usize) -> usize {
+        if size < SIZE {
+            0
+        } else {
+            ((size - 1) >> SHIFT) << SHIFT
+        }
+    }
+
+    fn create_array(context: &Context) -> Ptr<Object<[Ptr<Value>; SIZE]>> {
+        context.gc.new_null_typ_object([context.nil_value.as_value(); SIZE])
+    }
+
+    fn copy_array(
+        mut a: Ptr<Object<[Ptr<Value>; SIZE]>>,
+        mut b: Ptr<Object<[Ptr<Value>; SIZE]>>,
+        length: usize
+    ) -> Ptr<Object<[Ptr<Value>; SIZE]>> {
+        {
+            let a_array = a.value();
+            let mut b_array = b.value_mut();
+
+            for i in 0..length {
+                b_array[i] = a_array[i];
+            }
+        }
+        b
+    }
+
+    fn clone_array(context: &Context, array: Ptr<Object<[Ptr<Value>; SIZE]>>, length: usize) -> Ptr<Object<[Ptr<Value>; SIZE]>> {
+        Self::copy_array(array, Self::create_array(context), length)
+    }
+
     #[inline]
     fn new_path_set(
         context: &Context,
         array: Ptr<Object<[Ptr<Value>; SIZE]>>,
         size: usize, index: usize, value: Ptr<Value>, level: usize
     ) -> Ptr<Object<[Ptr<Value>; SIZE]>> {
-        let mut new_array = clone_array(context, array, ((size - 1) >> level) & MASK);
+        let mut new_array = Self::clone_array(context, array, ((size - 1) >> level) & MASK);
 
         if level == 0 {
             new_array[index & MASK] = value;
@@ -100,7 +132,7 @@ impl Vector {
         if level == 0 {
             array
         } else {
-            let mut new_array = create_array(context);
+            let mut new_array = Self::create_array(context);
             new_array[0] = Self::new_path(context, array, level - SHIFT).as_value();
             new_array
         }
@@ -114,7 +146,7 @@ impl Vector {
         level: usize
     ) -> Ptr<Object<[Ptr<Value>; SIZE]>> {
         let sub_index = ((size - 1) >> level) & MASK;
-        let mut new_array = clone_array(context, parent_array, sub_index);
+        let mut new_array = Self::clone_array(context, parent_array, sub_index);
         let array_to_insert;
 
         if level == SHIFT {
@@ -141,7 +173,7 @@ impl Vector {
         let size = self.size();
         let shift = self.shift;
 
-        if size - tail_off(size) < SIZE {
+        if size - Self::tail_off(size) < SIZE {
             self.tail[size & MASK] = value;
         } else {
             let mut new_root;
@@ -149,7 +181,7 @@ impl Vector {
             let mut new_shift = shift;
 
             if (size >> SHIFT) > (1 << shift) {
-                new_root = create_array(context);
+                new_root = Self::create_array(context);
                 new_root[0] = root.as_value();
                 new_root[1] = Self::new_path(context, tail_array, shift).as_value();
                 new_shift += SHIFT;
@@ -157,7 +189,7 @@ impl Vector {
                 new_root = Self::push_tail(context, root, tail_array, size, shift);
             }
 
-            let mut new_tail = create_array(context);
+            let mut new_tail = Self::create_array(context);
             new_tail[0] = value;
 
             self.tail = new_tail;
@@ -167,20 +199,57 @@ impl Vector {
 
         *self.size.value_mut() = (size as u64) + 1;
     }
+
+    #[inline(always)]
+    pub fn iter(&self) -> VectorIter {
+        VectorIter {
+            vector: self,
+            index: 0,
+            len: self.size(),
+        }
+    }
+}
+
+pub struct VectorIter<'a> {
+    vector: &'a Vector,
+    index: usize,
+    len: usize,
+}
+
+impl<'a> Iterator for VectorIter<'a> {
+    type Item = Ptr<Value>;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index < self.len {
+            let value = self.vector.get_unchecked(self.index);
+            self.index += 1;
+            Some(value)
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let size = self.len - self.index;
+        (size, Some(size))
+    }
 }
 
 impl fmt::Display for Vector {
 
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let size = self.size();
-
         write!(f, "[")?;
-        for i in 0..size {
-            if i != (size - 1) {
-                write!(f, "{} ", self.get_unchecked(i))?;
+        let mut it = self.iter();
+        while let Some(value) = it.next() {
+            let (size, _) = it.size_hint();
+
+            if size > 0 {
+                write!(f, "{:?} ", value)?;
             } else {
-                write!(f, "{}", self.get_unchecked(i))?;
+                write!(f, "{:?}", value)?;
             }
         }
         write!(f, "]")
@@ -196,7 +265,6 @@ impl fmt::Debug for Vector {
 }
 
 impl Ptr<Object<Vector>> {
-
 
     #[inline(always)]
     pub fn clone(&self, context: &Context) -> Self {
@@ -217,6 +285,7 @@ impl Ptr<Object<Vector>> {
         }
     }
 
+    #[inline]
     pub fn get(&self, index: Ptr<Object<usize>>, not_set_value: Ptr<Value>) -> Ptr<Value> {
         let index = *index.value();
 
@@ -227,42 +296,42 @@ impl Ptr<Object<Vector>> {
         }
     }
 
+    #[inline]
     pub fn push(&self, context: &Context, value: Ptr<Value>) -> Self {
         let mut new_vector = self.clone(context);
-        new_vector.tail = clone_array(context, self.tail, ((&**self).size() + 1) & MASK);
+        new_vector.tail = Vector::clone_array(context, self.tail, ((&**self).size() + 1) & MASK);
         new_vector.push_mut(context, value);
         new_vector
     }
-}
 
-fn tail_off(size: usize) -> usize {
-    if size < SIZE {
-        0
-    } else {
-        ((size - 1) >> SHIFT) << SHIFT
+    #[inline]
+    fn insert_unchecked(&mut self, context: &Context, size: usize, index: usize, value: Ptr<Value>) -> Self {
+        let mut vector = self.clone(context);
+
+        if index >= Vector::tail_off(size) {
+            let mut tail = self.tail;
+            let masked_index = index & MASK;
+
+            tail = Vector::clone_array(context, tail, (size + 1) & MASK);
+            tail[masked_index] = value;
+
+            vector.tail = tail;
+        } else {
+            vector.root = Vector::new_path_set(context, self.root, size, index, value, self.shift);
+        }
+
+        vector
     }
-}
 
-fn create_array(context: &Context) -> Ptr<Object<[Ptr<Value>; SIZE]>> {
-    context.gc.new_null_typ_object([context.nil_value.as_value(); SIZE])
-}
+    #[inline(always)]
+    pub fn insert(&mut self, context: &Context, index: Ptr<Object<u64>>, value: Ptr<Value>) -> Self {
+        let size = (&**self).size();
+        let index = *index.value() as usize;
 
-fn copy_array(
-    mut a: Ptr<Object<[Ptr<Value>; SIZE]>>,
-    mut b: Ptr<Object<[Ptr<Value>; SIZE]>>,
-    length: usize
-) -> Ptr<Object<[Ptr<Value>; SIZE]>> {
-    {
-        let mut a_array = a.value_mut();
-        let mut b_array = b.value_mut();
-
-        for i in 0..length {
-            b_array[i] = a_array[i];
+        if index < size {
+            self.insert_unchecked(context, size, index, value)
+        } else {
+            *self
         }
     }
-    b
-}
-
-fn clone_array(context: &Context, array: Ptr<Object<[Ptr<Value>; SIZE]>>, length: usize) -> Ptr<Object<[Ptr<Value>; SIZE]>> {
-    copy_array(array, create_array(context), length)
 }

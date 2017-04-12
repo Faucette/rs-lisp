@@ -1,7 +1,5 @@
 use alloc::boxed::Box;
 
-use collections::string::String;
-
 use core::{fmt, ptr};
 use core::ops::{Deref, DerefMut};
 use core::hash::{Hash, Hasher};
