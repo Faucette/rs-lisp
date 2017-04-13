@@ -97,11 +97,11 @@ impl Type {
                     .fields(list.iter().map(|v| Struct::key_to_string(context, &v)).collect())
                     .supr(supr).build()
 
-            } else if value.typ() == context.UInt64Type {
-                let size = value.downcast::<Object<u64>>().unwrap();
+            } else if value.typ() == context.UIntType {
+                let size = value.downcast::<Object<usize>>().unwrap();
 
                 TypeBuilder::new(name.as_str())
-                    .supr(supr).size(*size.value() as usize).is_bits().build()
+                    .supr(supr).size(*size.value()).is_bits().build()
 
             } else if
                 value.typ() == context.KeywordType &&
@@ -131,8 +131,21 @@ impl PartialEq for Type {
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.fields {
-            Some(ref fields) => write!(f, "({} {:?})", self.name, fields),
-            None => write!(f, "({})", self.name)
+            Some(ref fields) => {
+                write!(f, "(type {} [", self.name)?;
+                let mut it = fields.iter();
+                while let Some(key) = it.next() {
+                    let (size, _) = it.size_hint();
+
+                    if size > 0 {
+                        write!(f, ":{} ", key)?;
+                    } else {
+                        write!(f, ":{}", key)?;
+                    }
+                }
+                write!(f, "])")
+            },
+            None => write!(f, "(type {})", self.name)
         }
     }
 }

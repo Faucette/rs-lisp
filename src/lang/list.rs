@@ -47,7 +47,7 @@ impl fmt::Debug for Node {
 pub struct List {
     root: Option<Ptr<Object<Node>>>,
     tail: Option<Ptr<Object<Node>>>,
-    size: Ptr<Object<u64>>,
+    size: Ptr<Object<usize>>,
 }
 
 unsafe impl Send for List {}
@@ -60,7 +60,7 @@ impl List {
         List {
             root: None,
             tail: None,
-            size: context.gc.new_object(context.UInt64Type, 0u64),
+            size: context.gc.new_object(context.UIntType, 0usize),
         }
     }
 
@@ -71,7 +71,7 @@ impl List {
 
     #[inline(always)]
     pub fn size(&self) -> usize {
-        *self.size.value() as usize
+        *self.size.value()
     }
 
     #[inline]
@@ -102,7 +102,7 @@ impl List {
 impl Ptr<Object<List>> {
 
     #[inline(always)]
-    pub fn size(&self) -> Ptr<Object<u64>> {
+    pub fn size(&self) -> Ptr<Object<usize>> {
         self.size
     }
 
@@ -116,8 +116,8 @@ impl Ptr<Object<List>> {
     }
 
     #[inline(always)]
-    fn nth(&self, context: &Context, index: Ptr<Object<u64>>) -> Ptr<Value> {
-        match self.find_node(*index.value() as usize) {
+    fn nth(&self, context: &Context, index: Ptr<Object<usize>>) -> Ptr<Value> {
+        match self.find_node(*index.value()) {
             Some(ref node) => node.data,
             None => context.nil_value.as_value(),
         }
@@ -135,7 +135,7 @@ impl Ptr<Object<List>> {
         }
 
         new_list.root = new_node;
-        new_list.size = context.gc.new_object(context.UInt64Type, (**self.size) + 1);
+        new_list.size = context.gc.new_object(context.UIntType, (**self.size) + 1);
 
         new_list
     }
@@ -164,7 +164,7 @@ impl Ptr<Object<List>> {
         if size > 1 {
             new_list.root = self.root.unwrap().next;
             new_list.tail = self.tail;
-            new_list.size = context.gc.new_object(context.UInt64Type, size - 1);
+            new_list.size = context.gc.new_object(context.UIntType, size - 1);
         }
 
         new_list

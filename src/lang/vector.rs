@@ -1,5 +1,8 @@
 use core::fmt;
 
+use collection_traits::*;
+use vector;
+
 use ::{Context, Ptr};
 
 use super::object::Object;
@@ -16,18 +19,18 @@ pub const MASK: usize = SIZE - 1;
 pub struct Vector {
     root: Ptr<Object<[Ptr<Value>; SIZE]>>,
     tail: Ptr<Object<[Ptr<Value>; SIZE]>>,
-    size: Ptr<Object<u64>>,
+    size: Ptr<Object<usize>>,
     shift: usize,
 }
 
 impl Vector {
 
-    #[inline]
+    #[inline(always)]
     pub fn new(context: &Context) -> Self {
         Vector {
             root: Self::create_array(context),
             tail: Self::create_array(context),
-            size: context.gc.new_object(context.UInt64Type, 0u64),
+            size: context.gc.new_object(context.UIntType, 0usize),
             shift: SHIFT,
         }
     }
@@ -37,7 +40,7 @@ impl Vector {
         Vector {
             root: self.root,
             tail: self.tail,
-            size: context.gc.new_object(context.UInt64Type, *self.size.value()),
+            size: context.gc.new_object(context.UIntType, *self.size.value()),
             shift: self.shift,
         }
     }
@@ -55,7 +58,7 @@ impl Vector {
 
     #[inline(always)]
     pub fn size(&self) -> usize {
-        *self.size.value() as usize
+        *self.size.value()
     }
 
     #[inline]
@@ -201,7 +204,7 @@ impl Vector {
             self.shift = new_shift;
         }
 
-        *self.size.value_mut() = (size as u64) + 1;
+        *self.size.value_mut() = size + 1usize;
     }
 
     #[inline(always)]
@@ -213,6 +216,7 @@ impl Vector {
         }
     }
 }
+
 
 pub struct VectorIter<'a> {
     vector: &'a Vector,
@@ -240,6 +244,7 @@ impl<'a> Iterator for VectorIter<'a> {
         (size, Some(size))
     }
 }
+
 
 impl fmt::Display for Vector {
 
@@ -276,7 +281,7 @@ impl Ptr<Object<Vector>> {
     }
 
     #[inline(always)]
-    pub fn size(&self) -> Ptr<Object<u64>> {
+    pub fn size(&self) -> Ptr<Object<usize>> {
         self.size
     }
 
@@ -309,7 +314,7 @@ impl Ptr<Object<Vector>> {
     }
 
     #[inline]
-    fn insert_unchecked(&mut self, context: &Context, size: usize, index: usize, value: Ptr<Value>) -> Self {
+    fn set_unchecked(&mut self, context: &Context, size: usize, index: usize, value: Ptr<Value>) -> Self {
         let mut vector = self.clone(context);
 
         if index >= Vector::tail_off(size) {
@@ -328,12 +333,32 @@ impl Ptr<Object<Vector>> {
     }
 
     #[inline(always)]
-    pub fn insert(&mut self, context: &Context, index: Ptr<Object<u64>>, value: Ptr<Value>) -> Self {
+    pub fn set(&mut self, context: &Context, index: Ptr<Object<usize>>, value: Ptr<Value>) -> Self {
         let size = (&**self).size();
-        let index = *index.value() as usize;
+        let index = *index.value();
 
         if index < size {
-            self.insert_unchecked(context, size, index, value)
+            self.set_unchecked(context, size, index, value)
+        } else {
+            *self
+        }
+    }
+
+    #[inline]
+    pub fn insert(&mut self, context: &Context, index: Ptr<Object<usize>>, value: Ptr<Value>) -> Self {
+        let size = (&**self).size();
+        let index = *index.value();
+
+        if index < size {
+            let mut vector: vector::Vector<Ptr<Value>> = self.iter().collect();
+            vector.insert(index, value);
+
+            let mut new_vector = Vector::new(context);
+            for value in vector {
+                new_vector.push_mut(context, value);
+            }
+
+            context.gc.new_object(context.VectorType, new_vector)
         } else {
             *self
         }

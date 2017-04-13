@@ -14,14 +14,14 @@
 (defn add (a, b)
   (add_uint64 a, b))
 
-(def result (add 1, 1))
+(def result (uint_add 1, 1))
 
 (print "1 + 1 = ", result)
 
 (defn fac (x)
-  (if (int_eq x 0)
+  (if (uint_eq x 0)
     1
-    (int_mul x (fac (int_sub x 1)))))
+    (uint_mul x (fac (uint_sub x 1)))))
 
 (fac 5)
 
@@ -32,6 +32,9 @@
   (print vec_b)
   (print vec_c))
 
-(deftype Person (age, name))
+(deftype Person Any (age, name))
 
-(Person 10, "Bob")
+(def bob (Person 42, "Bob"))
+
+(@ bob :age)
+(@ bob :age 56)

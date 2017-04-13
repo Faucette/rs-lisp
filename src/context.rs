@@ -7,7 +7,10 @@ use hash_map::HashMap;
 
 use ::Ptr;
 use ::Gc;
-use ::lang::{special_forms, Value, Object, Scope, Keyword, Symbol, List, Vector, Function, Nil, Reader, Type, TypeBuilder};
+use ::lang::{
+    special_forms, Value, Object, TypeBuilder,
+    Scope, Keyword, Struct, Symbol, List, Vector, Function, Nil, Reader, Type
+};
 
 
 #[allow(non_snake_case)]
@@ -41,11 +44,13 @@ pub struct Context {
     pub BooleanType: Ptr<Object<Type>>,
     pub CharType: Ptr<Object<Type>>,
 
+    pub IntType: Ptr<Object<Type>>,
     pub Int8Type: Ptr<Object<Type>>,
     pub Int16Type: Ptr<Object<Type>>,
     pub Int32Type: Ptr<Object<Type>>,
     pub Int64Type: Ptr<Object<Type>>,
 
+    pub UIntType: Ptr<Object<Type>>,
     pub UInt8Type: Ptr<Object<Type>>,
     pub UInt16Type: Ptr<Object<Type>>,
     pub UInt32Type: Ptr<Object<Type>>,
@@ -159,6 +164,9 @@ impl Context {
             .constructor(gc.new_object(FunctionType, Function::new_rust(Char_constructor)))
             .supr(AnyType).size(mem::size_of::<char>()).is_bits().build());
 
+        let IntType = gc.new_object(TypeType, TypeBuilder::new("Int")
+            .constructor(gc.new_object(FunctionType, Function::new_rust(Int_constructor)))
+            .supr(SignedType).size(mem::size_of::<isize>()).is_bits().build());
         let Int8Type = gc.new_object(TypeType, TypeBuilder::new("Int8")
             .constructor(gc.new_object(FunctionType, Function::new_rust(Int8_constructor)))
             .supr(SignedType).size(mem::size_of::<i8>()).is_bits().build());
@@ -172,6 +180,9 @@ impl Context {
             .constructor(gc.new_object(FunctionType, Function::new_rust(Int64_constructor)))
             .supr(SignedType).size(mem::size_of::<i64>()).is_bits().build());
 
+        let UIntType = gc.new_object(TypeType, TypeBuilder::new("UInt")
+            .constructor(gc.new_object(FunctionType, Function::new_rust(UInt_constructor)))
+            .supr(UnsignedType).size(mem::size_of::<usize>()).is_bits().build());
         let UInt8Type = gc.new_object(TypeType, TypeBuilder::new("UInt8")
             .constructor(gc.new_object(FunctionType, Function::new_rust(UInt8_constructor)))
             .supr(UnsignedType).size(mem::size_of::<u8>()).is_bits().build());
@@ -231,11 +242,13 @@ impl Context {
         scope.set("Boolean", BooleanType.as_value());
         scope.set("Char", CharType.as_value());
 
+        scope.set("Int", IntType.as_value());
         scope.set("Int8", Int8Type.as_value());
         scope.set("Int16", Int16Type.as_value());
         scope.set("Int32", Int32Type.as_value());
         scope.set("Int64", Int64Type.as_value());
 
+        scope.set("UInt", UIntType.as_value());
         scope.set("UInt8", UInt8Type.as_value());
         scope.set("UInt16", UInt16Type.as_value());
         scope.set("UInt32", UInt32Type.as_value());
@@ -257,6 +270,7 @@ impl Context {
         scope.set("def", gc.new_object(SpecialFormType, Function::new_rust(special_forms::def)).as_value());
         scope.set("quote", gc.new_object(SpecialFormType, Function::new_rust(special_forms::quote)).as_value());
         scope.set("throw", gc.new_object(SpecialFormType, Function::new_rust(special_forms::throw)).as_value());
+        scope.set("@", gc.new_object(FunctionType, Function::new_rust(Struct::access)).as_value());
 
         Context {
             AnyType: AnyType,
@@ -288,11 +302,13 @@ impl Context {
             BooleanType: BooleanType,
             CharType: CharType,
 
+            IntType: IntType,
             Int8Type: Int8Type,
             Int16Type: Int16Type,
             Int32Type: Int32Type,
             Int64Type: Int64Type,
 
+            UIntType: UIntType,
             UInt8Type: UInt8Type,
             UInt16Type: UInt16Type,
             UInt32Type: UInt32Type,
@@ -375,11 +391,13 @@ macro_rules! create_number_constructor {
     );
 }
 
+create_number_constructor!(Int_constructor, 0usize);
 create_number_constructor!(Int8_constructor, 0u8);
 create_number_constructor!(Int16_constructor, 0u16);
 create_number_constructor!(Int32_constructor, 0u32);
 create_number_constructor!(Int64_constructor, 0u64);
 
+create_number_constructor!(UInt_constructor, 0isize);
 create_number_constructor!(UInt8_constructor, 0i8);
 create_number_constructor!(UInt16_constructor, 0i16);
 create_number_constructor!(UInt32_constructor, 0i32);

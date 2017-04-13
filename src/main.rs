@@ -34,74 +34,73 @@ pub fn lisp_print(context: &Context, scope: Ptr<Object<Scope>>, args: Ptr<Object
     context.nil_value.as_value()
 }
 
-pub fn lisp_add_uint64(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+pub fn lisp_uint_add(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
     let left = args.first(context);
     args = args.pop(context);
     let right = args.first(context);
 
-    if left.typ() == context.UInt64Type && right.typ() == context.UInt64Type {
-        let a = left.downcast::<Object<u64>>().unwrap();
-        let b = right.downcast::<Object<u64>>().unwrap();
-        context.gc.new_object(context.UInt64Type, a.value() + b.value()).as_value()
+    if left.typ() == context.UIntType && right.typ() == context.UIntType {
+        let a = left.downcast::<Object<usize>>().unwrap();
+        let b = right.downcast::<Object<usize>>().unwrap();
+        context.gc.new_object(context.UIntType, a.value() + b.value()).as_value()
     } else {
-        context.gc.new_object(context.UInt64Type, 0u64).as_value()
+        context.gc.new_object(context.UIntType, 0usize).as_value()
     }
 }
 
-pub fn lisp_int_eq(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+pub fn lisp_uint_eq(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
     let left = args.first(context);
     args = args.pop(context);
     let right = args.first(context);
 
-    if left.typ() == context.UInt64Type && right.typ() == context.UInt64Type {
-        let a = left.downcast::<Object<u64>>().unwrap();
-        let b = right.downcast::<Object<u64>>().unwrap();
+    if left.typ() == context.UIntType && right.typ() == context.UIntType {
+        let a = left.downcast::<Object<usize>>().unwrap();
+        let b = right.downcast::<Object<usize>>().unwrap();
         context.gc.new_object(context.BooleanType, a.value() == b.value()).as_value()
     } else {
         context.gc.new_object(context.BooleanType, false).as_value()
     }
 }
 
-pub fn lisp_int_sub(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+pub fn lisp_uint_sub(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
     let left = args.first(context);
     args = args.pop(context);
     let right = args.first(context);
 
-    if left.typ() == context.UInt64Type && right.typ() == context.UInt64Type {
-        let a = left.downcast::<Object<u64>>().unwrap();
-        let b = right.downcast::<Object<u64>>().unwrap();
-        context.gc.new_object(context.UInt64Type, a.value() - b.value()).as_value()
+    if left.typ() == context.UIntType && right.typ() == context.UIntType {
+        let a = left.downcast::<Object<usize>>().unwrap();
+        let b = right.downcast::<Object<usize>>().unwrap();
+        context.gc.new_object(context.UIntType, a.value() - b.value()).as_value()
     } else {
-        context.gc.new_object(context.UInt64Type, 0u64).as_value()
+        context.gc.new_object(context.UIntType, 0usize).as_value()
     }
 }
 
-pub fn lisp_int_mul(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+pub fn lisp_uint_mul(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
     let left = args.first(context);
     args = args.pop(context);
     let right = args.first(context);
 
-    if left.typ() == context.UInt64Type && right.typ() == context.UInt64Type {
-        let a = left.downcast::<Object<u64>>().unwrap();
-        let b = right.downcast::<Object<u64>>().unwrap();
-        context.gc.new_object(context.UInt64Type, a.value() * b.value()).as_value()
+    if left.typ() == context.UIntType && right.typ() == context.UIntType {
+        let a = left.downcast::<Object<usize>>().unwrap();
+        let b = right.downcast::<Object<usize>>().unwrap();
+        context.gc.new_object(context.UIntType, a.value() * b.value()).as_value()
     } else {
-        context.gc.new_object(context.UInt64Type, 0u64).as_value()
+        context.gc.new_object(context.UIntType, 0usize).as_value()
     }
 }
 
 fn main() {
     let mut context = Context::new();
 
-    context.scope.set("add_uint64", context.gc.new_object(context.FunctionType,
-        Function::new_rust(lisp_add_uint64)).as_value());
-
-    context.scope.set("int_eq", context.gc.new_object(context.FunctionType,
-        Function::new_rust(lisp_int_eq)).as_value());
-    context.scope.set("int_sub", context.gc.new_object(context.FunctionType,
-        Function::new_rust(lisp_int_sub)).as_value());
-    context.scope.set("int_mul", context.gc.new_object(context.FunctionType,
-        Function::new_rust(lisp_int_mul)).as_value());
+    context.scope.set("uint_eq", context.gc.new_object(context.FunctionType,
+        Function::new_rust(lisp_uint_eq)).as_value());
+    context.scope.set("uint_sub", context.gc.new_object(context.FunctionType,
+        Function::new_rust(lisp_uint_sub)).as_value());
+    context.scope.set("uint_mul", context.gc.new_object(context.FunctionType,
+        Function::new_rust(lisp_uint_mul)).as_value());
+    context.scope.set("uint_add", context.gc.new_object(context.FunctionType,
+        Function::new_rust(lisp_uint_add)).as_value());
 
     context.scope.set("print", context.gc.new_object(context.FunctionType,
         Function::new_rust(lisp_print)).as_value());

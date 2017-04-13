@@ -50,10 +50,10 @@ pub fn number_reader(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Ob
                 context.gc.new_object(context.Float64Type, string.parse::<f64>().unwrap()).as_value());
         } else if is_negative {
             ret_list.push_back_mut(context,
-                context.gc.new_object(context.Int64Type, string.parse::<i64>().unwrap()).as_value());
+                context.gc.new_object(context.IntType, string.parse::<isize>().unwrap()).as_value());
         } else {
             ret_list.push_back_mut(context,
-                context.gc.new_object(context.UInt64Type, string.parse::<u64>().unwrap()).as_value());
+                context.gc.new_object(context.UIntType, string.parse::<usize>().unwrap()).as_value());
         }
 
         ret_list.as_value()

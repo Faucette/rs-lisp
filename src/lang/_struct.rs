@@ -12,6 +12,7 @@ use super::object::Object;
 use super::typ::Type;
 use super::value::Value;
 use super::keyword::Keyword;
+use super::scope::Scope;
 use super::symbol::Symbol;
 use super::list::List;
 
@@ -74,16 +75,44 @@ impl Struct {
             key.to_string()
         }
     }
+
+    #[inline]
+    pub fn access(context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+        let value = args.first(context);
+
+        match value.downcast::<Object<Struct>>() {
+            Some(mut struc) => {
+                let size = *args.size().value();
+                args = args.pop(context);
+
+                let key = args.first(context);
+
+                if size < 3 {
+                    struc.get(context, key)
+                } else {
+                    args = args.pop(context);
+                    let new_value = args.first(context);
+                    struc.set(context, key, new_value);
+                    value
+                }
+            },
+            None => value, // TODO throw error?
+        }
+    }
 }
 
 impl Ptr<Object<Struct>> {
 
     #[inline(always)]
-    pub fn has(&self, context: &Context, key: Ptr<Value>) -> bool {
-        self.map.contains_key(&Struct::key_to_string(context, &key))
+    pub fn has(&self, context: &Context, key: Ptr<Value>) -> Ptr<Object<bool>> {
+        if self.map.contains_key(&Struct::key_to_string(context, &key)) {
+            context.true_value
+        } else {
+            context.false_value
+        }
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn set(&mut self, context: &Context, key: Ptr<Value>, value: Ptr<Value>) {
         let k = Struct::key_to_string(context, &key);
 
@@ -92,7 +121,7 @@ impl Ptr<Object<Struct>> {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn get(&self, context: &Context, key: Ptr<Value>) -> Ptr<Value> {
         match self.map.get(&Struct::key_to_string(context, &key)) {
             Some(value) => *value,
@@ -105,7 +134,18 @@ impl fmt::Display for Struct {
 
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", &self.map)
+        write!(f, "{{")?;
+        let mut it = self.map.iter();
+        while let Some((key, value)) = it.next() {
+            let (size, _) = it.size_hint();
+
+            if size > 0 {
+                write!(f, ":{} {:?} ", key, value)?;
+            } else {
+                write!(f, ":{} {:?}", key, value)?;
+            }
+        }
+        write!(f, "}}")
     }
 }
 

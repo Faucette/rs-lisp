@@ -3,8 +3,8 @@
 #![feature(collections)]
 #![feature(heap_api)]
 #![feature(get_type_id)]
-#![no_std]
-//extern crate core;
+//#![no_std]
+extern crate core;
 
 
 extern crate alloc;
