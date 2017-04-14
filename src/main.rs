@@ -6,7 +6,7 @@ use std::io::prelude::*;
 
 
 use lisp::lang::*;
-use lisp::{eval, Ptr, Context};
+use lisp::{eval, eval_recur, Ptr, Context};
 
 
 
@@ -124,7 +124,7 @@ fn main() {
     println!("\nAST: {:?}\n", values);
 
     while !values.is_empty(&context).value() {
-        let result = eval(&context, context.scope, values.first(&context));
+        let result = eval_recur(&context, context.scope, values.first(&context));
         println!("{:?}", result);
         values = values.pop(&context);
     }

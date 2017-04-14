@@ -8,9 +8,10 @@ pub fn is_whitespace(ch: char) -> bool {
 #[inline]
 pub fn is_symbol_char(ch: char) -> bool {
     !is_whitespace(ch) &&
+    ch != '\'' && ch != '"' &&
+    ch != '`' && ch != ';' &&
     ch != '(' && ch != ')' &&
     ch != '{' && ch != '}' &&
     ch != '[' && ch != ']' &&
-    ch != '|' && ch != '|' &&
-    ch != '`' && ch != '\'' && ch != '"'
+    ch != '|' && ch != '|'
 }

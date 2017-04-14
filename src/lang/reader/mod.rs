@@ -1,3 +1,4 @@
+mod comment_reader;
 mod identifier_reader;
 mod list_reader;
 mod number_reader;
@@ -9,6 +10,7 @@ mod vector_reader;
 mod whitespace_reader;
 
 
+pub use self::comment_reader::comment_reader;
 pub use self::identifier_reader::identifier_reader;
 pub use self::list_reader::list_reader;
 pub use self::number_reader::number_reader;
