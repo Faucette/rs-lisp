@@ -113,7 +113,7 @@ fn main() {
     context.scope.set("vec_b", vec_b.as_value());
     context.scope.set("vec_c", vec_c.as_value());
 
-    let mut file = File::open("tests/test.s").unwrap();
+    let mut file = File::open("tests/simple.s").unwrap();
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
     let input = contents.chars().collect();

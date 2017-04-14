@@ -44,10 +44,10 @@ fn eval_fn(context: &Context, scope: Ptr<Object<Scope>>, symbol: Ptr<Value>, cal
         let function = callable.downcast::<Object<Function>>().unwrap();
         eval(context, scope, function.call(context, scope, list))
 
-    } else if callable.typ() == context.SpecialFormType {
+    //} else if callable.typ() == context.SpecialFormType {
 
-        let function = callable.downcast::<Object<Function>>().unwrap();
-        function.call(context, scope, list)
+        //let function = callable.downcast::<Object<Function>>().unwrap();
+        //function.call(context, scope, list)
 
     } else if callable.typ() == context.TypeType {
 

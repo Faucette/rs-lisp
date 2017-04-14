@@ -18,8 +18,6 @@ pub struct Context {
     pub AnyType: Ptr<Object<Type>>,
     pub TypeType: Ptr<Object<Type>>,
 
-    pub SpecialFormType: Ptr<Object<Type>>,
-
     pub FunctionType: Ptr<Object<Type>>,
     pub MacroType: Ptr<Object<Type>>,
     pub ScopeType: Ptr<Object<Type>>,
@@ -90,10 +88,6 @@ impl Context {
         FunctionType.value.constructor = Some(gc.new_object(FunctionType,
             Function::new_rust(Function::constructor)));
 
-        let SpecialFormType = gc.new_object(TypeType, TypeBuilder::new("SpecialForm")
-            .size(mem::size_of::<Function>())
-            .constructor(gc.new_object(FunctionType, Function::new_rust(Function::special_form_constructor)))
-            .supr(AnyType).build());
         let MacroType = gc.new_object(TypeType, TypeBuilder::new("Macro")
             .size(mem::size_of::<Function>())
             .constructor(gc.new_object(FunctionType, Function::new_rust(Function::macro_constructor)))
@@ -219,7 +213,6 @@ impl Context {
 
         // scope.set("Scope", ScopeType.as_value());
         scope.set("Function", FunctionType.as_value());
-        scope.set("SpecialForm", SpecialFormType.as_value());
         scope.set("Macro", MacroType.as_value());
         scope.set("Nil", NilType.as_value());
 
@@ -261,22 +254,9 @@ impl Context {
         scope.set("false", false_value.as_value());
         scope.set("nil", nil_value.as_value());
 
-        scope.set("do", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_do)).as_value());
-        scope.set("fn", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_fn)).as_value());
-        scope.set("if", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_if)).as_value());
-        scope.set("let", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_let)).as_value());
-        scope.set("macro", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_macro)).as_value());
-        scope.set("type", gc.new_object(SpecialFormType, Function::new_rust(special_forms::_type)).as_value());
-        scope.set("def", gc.new_object(SpecialFormType, Function::new_rust(special_forms::def)).as_value());
-        scope.set("quote", gc.new_object(SpecialFormType, Function::new_rust(special_forms::quote)).as_value());
-        scope.set("throw", gc.new_object(SpecialFormType, Function::new_rust(special_forms::throw)).as_value());
-        scope.set("@", gc.new_object(FunctionType, Function::new_rust(Struct::access)).as_value());
-
         Context {
             AnyType: AnyType,
             TypeType: TypeType,
-
-            SpecialFormType: SpecialFormType,
 
             FunctionType: FunctionType,
             MacroType: MacroType,

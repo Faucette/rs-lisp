@@ -46,10 +46,6 @@ impl Function {
         Self::generic_constructor(context.FunctionType, context, scope, args)
     }
     #[inline(always)]
-    pub fn special_form_constructor(context: &Context, scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
-        Self::generic_constructor(context.SpecialFormType, context, scope, args)
-    }
-    #[inline(always)]
     pub fn macro_constructor(context: &Context, scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
         Self::generic_constructor(context.MacroType, context, scope, args)
     }
@@ -79,7 +75,7 @@ impl Function {
                 args = args.pop(context);
                 value.downcast::<Object<List>>().unwrap()
             } else {
-                panic!("invalid arguments argument should be list")
+                context.gc.new_object(context.ListType, List::new(context))
             }
         };
 
@@ -87,6 +83,37 @@ impl Function {
 
         context.gc.new_object(typ,
             Function::new_internal(scope, name, arg_symbols, body)).as_value()
+    }
+}
+
+impl Ptr<Object<Function>> {
+
+    #[inline]
+    fn get_scope(&self, context: &Context, scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Object<Scope>> {
+        match &***self {
+            &Function::Internal(scope, name, mut arg_symbols, body) => {
+                let mut function_scope =
+                    context.gc.new_object(context.ScopeType, Scope::new(None, Some(scope)));
+
+                if let Some(name) = name {
+                    function_scope.set(name.value().clone(), self.as_value());
+                }
+
+                while !arg_symbols.is_empty(context).value() {
+                    let symbol = arg_symbols.first(context);
+                    let value = args.first(context);
+
+                    args = args.pop(context);
+                    arg_symbols = arg_symbols.pop(context);
+
+                    let symbol = symbol.downcast::<Object<Symbol>>().unwrap();
+                    function_scope.set(symbol.value().clone(), value);
+                }
+
+                function_scope
+            },
+            _ => scope,
+        }
     }
 }
 
