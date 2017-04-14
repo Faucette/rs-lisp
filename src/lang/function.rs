@@ -89,7 +89,7 @@ impl Function {
 impl Ptr<Object<Function>> {
 
     #[inline]
-    fn get_scope(&self, context: &Context, scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Object<Scope>> {
+    pub fn get_scope(&self, context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Object<Scope>> {
         match &***self {
             &Function::Internal(scope, name, mut arg_symbols, body) => {
                 let mut function_scope =
@@ -112,7 +112,7 @@ impl Ptr<Object<Function>> {
 
                 function_scope
             },
-            _ => scope,
+            _ => context.gc.new_object(context.ScopeType, Scope::new(None, None)),
         }
     }
 }
