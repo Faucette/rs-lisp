@@ -1,6 +1,9 @@
 use core::fmt;
+use core::hash::{Hasher};
 
-use ::{Ptr, Context};
+use hash_map::DefaultHasher;
+
+use ::{Context, LHash, Ptr};
 
 use super::value::Value;
 use super::object::Object;
@@ -10,6 +13,14 @@ use super::scope::Scope;
 struct Node {
     next: Option<Ptr<Object<Node>>>,
     data: Ptr<Value>,
+}
+
+impl LHash for Node {
+
+    #[inline(always)]
+    fn hash(&self, state: &mut DefaultHasher) {
+        ((&self) as *const _ as usize).hash(state);
+    }
 }
 
 impl Node {
@@ -47,6 +58,14 @@ pub struct List {
     root: Option<Ptr<Object<Node>>>,
     tail: Option<Ptr<Object<Node>>>,
     size: Ptr<Object<usize>>,
+}
+
+impl LHash for List {
+
+    #[inline(always)]
+    fn hash(&self, state: &mut DefaultHasher) {
+        ((&self) as *const _ as usize).hash(state);
+    }
 }
 
 unsafe impl Send for List {}
@@ -142,7 +161,7 @@ impl Ptr<Object<List>> {
     }
 
     #[inline]
-    pub(crate) fn push_back_mut(&mut self, context: &Context, data: Ptr<Value>) -> &mut Self {
+    pub fn push_back_mut(&mut self, context: &Context, data: Ptr<Value>) -> &mut Self {
         let new_node = Some(context.gc.new_null_typ_object(Node::new(None, data)));
 
         if self.tail.is_some() {

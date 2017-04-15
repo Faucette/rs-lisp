@@ -1,6 +1,6 @@
 use core::fmt;
 
-use ::{Context, Ptr};
+use ::{Context, LHash, Ptr};
 
 use super::value::Value;
 use super::object::Object;
@@ -8,7 +8,7 @@ use super::list::List;
 use super::scope::Scope;
 
 
-#[derive(PartialEq)]
+#[derive(Hash, PartialEq)]
 pub struct Nil;
 
 impl Nil {

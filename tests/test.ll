@@ -26,11 +26,11 @@
 (fac 5)
 
 [0, 1, 2, 3, 4]
+{:key "value"}
 
 (do
-  (print vec_a)
-  (print vec_b)
-  (print vec_c))
+  (print [])
+  (print [true, false]))
 
 (deftype Person (age, name) Any)
 

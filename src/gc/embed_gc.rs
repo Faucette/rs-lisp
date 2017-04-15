@@ -6,7 +6,7 @@ use core::{fmt, mem};
 use collection_traits::*;
 use linked_list::LinkedList;
 
-use ::Ptr;
+use ::{LHash, Ptr};
 use ::lang::{Object, Type, Value};
 
 
@@ -30,7 +30,7 @@ impl EmbedGc {
     }
 
     #[inline]
-    pub fn new_object<T: 'static + fmt::Debug>(&self, typ: Ptr<Object<Type>>, value: T) -> Ptr<Object<T>> {
+    pub fn new_object<T: 'static + LHash + fmt::Debug>(&self, typ: Ptr<Object<Type>>, value: T) -> Ptr<Object<T>> {
         let value = Box::into_raw(Box::new(Object::new(typ, value)));
 
 
@@ -43,7 +43,7 @@ impl EmbedGc {
     }
 
     #[inline(always)]
-    pub fn new_null_typ_object<T: 'static + fmt::Debug>(&self, value: T) -> Ptr<Object<T>> {
+    pub fn new_null_typ_object<T: 'static + LHash + fmt::Debug>(&self, value: T) -> Ptr<Object<T>> {
         self.new_object(unsafe {mem::uninitialized()}, value)
     }
 }

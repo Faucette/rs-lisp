@@ -1,5 +1,5 @@
 [root]
-name = "lisp"
+name = "lambda"
 version = "0.1.0"
 dependencies = [
  "collection_traits 0.1.0 (git+https://github.com/nathanfaucett/rs-collection_traits.git)",

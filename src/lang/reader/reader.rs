@@ -5,10 +5,11 @@ use core::fmt;
 use collection_traits::*;
 use vector::Vector;
 
-use ::{Ptr, Context};
+use ::{Context, LHash, Ptr};
 use ::lang::{Value, Object, Function, Scope, List};
 
 use super::comment_reader::comment_reader;
+use super::hash_map_reader::hash_map_reader;
 use super::identifier_reader::identifier_reader;
 use super::list_reader::list_reader;
 use super::number_reader::number_reader;
@@ -18,6 +19,7 @@ use super::vector_reader::vector_reader;
 use super::whitespace_reader::whitespace_reader;
 
 
+#[derive(Hash)]
 pub struct Reader {
     readers: Vector<Ptr<Object<Function>>>,
     input: Vector<char>,
@@ -39,6 +41,7 @@ impl Reader {
         readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(comment_reader)));
         readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(list_reader)));
         readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(vector_reader)));
+        readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(hash_map_reader)));
         readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(number_reader)));
         readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(quote_reader)));
         readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(quoted_reader)));

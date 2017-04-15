@@ -1,4 +1,4 @@
-use ::{Ptr, Context};
+use ::{Context, LHash, Ptr};
 use ::lang::{Value, Object, Scope, List};
 use super::reader::Reader;
 use super::utils;

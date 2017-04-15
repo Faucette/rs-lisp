@@ -1,16 +1,14 @@
-extern crate lisp;
+extern crate lambda;
 
 
 use std::fs::File;
 use std::io::prelude::*;
 
-
-use lisp::lang::*;
-use lisp::{eval, Ptr, Context};
-
+use lambda::lang::*;
+use lambda::{eval, Ptr, Context};
 
 
-pub fn lisp_to_string(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+pub fn lambda_to_string(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
     let mut string = String::new();
 
     loop {
@@ -28,13 +26,13 @@ pub fn lisp_to_string(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Ob
     context.gc.new_object(context.StringType, string).as_value()
 }
 
-pub fn lisp_print(context: &Context, scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
-    let string = lisp_to_string(context, scope, args);
+pub fn lambda_print(context: &Context, scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
+    let string = lambda_to_string(context, scope, args);
     println!("{}", string);
     context.nil_value.as_value()
 }
 
-pub fn lisp_uint_add(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+pub fn lambda_uint_add(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
     let left = args.first(context);
     args = args.pop(context);
     let right = args.first(context);
@@ -48,7 +46,7 @@ pub fn lisp_uint_add(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Obj
     }
 }
 
-pub fn lisp_uint_eq(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+pub fn lambda_uint_eq(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
     let left = args.first(context);
     args = args.pop(context);
     let right = args.first(context);
@@ -62,7 +60,7 @@ pub fn lisp_uint_eq(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Obje
     }
 }
 
-pub fn lisp_uint_sub(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+pub fn lambda_uint_sub(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
     let left = args.first(context);
     args = args.pop(context);
     let right = args.first(context);
@@ -76,7 +74,7 @@ pub fn lisp_uint_sub(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Obj
     }
 }
 
-pub fn lisp_uint_mul(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+pub fn lambda_uint_mul(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
     let left = args.first(context);
     args = args.pop(context);
     let right = args.first(context);
@@ -91,42 +89,31 @@ pub fn lisp_uint_mul(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Obj
 }
 
 fn main() {
-    let mut context = Context::new();
+    let context = Context::new();
 
-    context.scope.set("uint_eq", context.gc.new_object(context.FunctionType,
-        Function::new_rust(lisp_uint_eq)).as_value());
-    context.scope.set("uint_sub", context.gc.new_object(context.FunctionType,
-        Function::new_rust(lisp_uint_sub)).as_value());
-    context.scope.set("uint_mul", context.gc.new_object(context.FunctionType,
-        Function::new_rust(lisp_uint_mul)).as_value());
-    context.scope.set("uint_add", context.gc.new_object(context.FunctionType,
-        Function::new_rust(lisp_uint_add)).as_value());
+    context.scope.set(&context, context.gc.new_object(context.StringType, String::from("uint_eq")).as_value(),
+        context.gc.new_object(context.FunctionType, Function::new_rust(lambda_uint_eq)).as_value());
+    context.scope.set(&context, context.gc.new_object(context.StringType, String::from("uint_sub")).as_value(),
+        context.gc.new_object(context.FunctionType, Function::new_rust(lambda_uint_sub)).as_value());
+    context.scope.set(&context, context.gc.new_object(context.StringType, String::from("uint_mul")).as_value(),
+        context.gc.new_object(context.FunctionType, Function::new_rust(lambda_uint_mul)).as_value());
+    context.scope.set(&context, context.gc.new_object(context.StringType, String::from("uint_add")).as_value(),
+        context.gc.new_object(context.FunctionType, Function::new_rust(lambda_uint_add)).as_value());
+    context.scope.set(&context, context.gc.new_object(context.StringType, String::from("print")).as_value(),
+        context.gc.new_object(context.FunctionType, Function::new_rust(lambda_print)).as_value());
 
-    context.scope.set("print", context.gc.new_object(context.FunctionType,
-        Function::new_rust(lisp_print)).as_value());
-
-    let vec_a = context.gc.new_object(context.VectorType, Vector::new(&context));
-    let vec_b = vec_a.push(&context, context.true_value.as_value());
-    let vec_c = vec_b.push(&context, context.false_value.as_value());
-
-    context.scope.set("vec_a", vec_a.as_value());
-    context.scope.set("vec_b", vec_b.as_value());
-    context.scope.set("vec_c", vec_c.as_value());
-
-    let mut file = File::open("tests/test.s").unwrap();
+    let mut file = File::open("tests/test.ll").unwrap();
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
     let input = contents.chars().collect();
 
     let mut reader = context.gc.new_object(context.ReaderType, Reader::new(&context, input));
-    let mut values = reader.collect(&context, context.scope);
+    let mut ast = reader.collect(&context, context.scope);
 
-    println!("\nAST: {:?}\n", values);
-
-    while !values.is_empty(&context).value() {
-        let result = eval(&context, context.scope, values.first(&context));
+    while !ast.is_empty(&context).value() {
+        let result = eval(&context, context.scope, ast.first(&context));
         println!("{:?}", result);
-        values = values.pop(&context);
+        ast = ast.pop(&context);
     }
 
     println!("\nTotel: {:?} bytes\n", context.gc.total());

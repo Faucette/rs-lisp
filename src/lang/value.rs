@@ -1,12 +1,15 @@
 use core::fmt;
 use core::any::{Any, TypeId};
 
-use ::Ptr;
+use hash_map::DefaultHasher;
+
+use ::{LHash, Ptr};
 use ::lang::{Object, Type};
 
 
 pub trait Value: Any + fmt::Debug {
     fn typ(&self) -> Ptr<Object<Type>>;
+    fn hash(&self, &mut DefaultHasher);
 }
 
 impl Ptr<Value> {

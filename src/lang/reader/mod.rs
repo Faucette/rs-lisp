@@ -1,4 +1,5 @@
 mod comment_reader;
+mod hash_map_reader;
 mod identifier_reader;
 mod list_reader;
 mod number_reader;
@@ -11,6 +12,7 @@ mod whitespace_reader;
 
 
 pub use self::comment_reader::comment_reader;
+pub use self::hash_map_reader::hash_map_reader;
 pub use self::identifier_reader::identifier_reader;
 pub use self::list_reader::list_reader;
 pub use self::number_reader::number_reader;

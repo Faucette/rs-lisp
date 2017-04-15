@@ -1,8 +1,10 @@
 use core::fmt;
 use core::ops::{Deref, DerefMut};
-use core::hash::{Hash, Hasher};
+use core::hash::{Hasher};
 
-use ::Ptr;
+use hash_map::DefaultHasher;
+
+use ::{LHash, Ptr};
 use ::lang::{Value, Type};
 
 
@@ -44,11 +46,14 @@ impl<T: 'static + fmt::Debug> Ptr<Object<T>> {
     }
 }
 
-impl<T: 'static + fmt::Debug> Value for Object<T> {
+impl<T: 'static + LHash + fmt::Debug> Value for Object<T> {
 
     #[inline(always)]
     fn typ(&self) -> Ptr<Object<Type>> {
         self.typ
+    }
+    fn hash(&self, hasher: &mut DefaultHasher) {
+        self.value.hash(hasher);
     }
 }
 
@@ -91,10 +96,10 @@ impl<T: PartialEq> PartialEq for Object<T> {
 
 impl<T: Eq> Eq for Object<T> {}
 
-impl<T: Hash> Hash for Object<T> {
+impl<T: LHash> LHash for Object<T> {
 
     #[inline(always)]
-    fn hash<H: Hasher>(&self, state: &mut H) {
+    fn hash(&self, state: &mut DefaultHasher) {
         self.value.hash(state);
     }
 }

@@ -2,13 +2,10 @@ use collections::string::String;
 
 use core::mem;
 
-use collection_traits::*;
-use hash_map::HashMap;
-
 use ::{Ptr, Gc};
 use ::lang::{
     Value, Object, TypeBuilder,
-    Scope, Keyword, Symbol, List, Vector, Function, Nil, Reader, Type
+    Scope, Keyword, Symbol, List, Vector, HashMap, Function, Nil, Reader, Type
 };
 
 
@@ -26,6 +23,7 @@ pub struct Context {
 
     pub ListType: Ptr<Object<Type>>,
     pub VectorType: Ptr<Object<Type>>,
+    pub HashMapType: Ptr<Object<Type>>,
 
     pub SymbolType: Ptr<Object<Type>>,
     pub KeywordType: Ptr<Object<Type>>,
@@ -60,7 +58,7 @@ pub struct Context {
     pub false_value: Ptr<Object<bool>>,
     pub nil_value: Ptr<Object<Nil>>,
 
-    pub namespaces: HashMap<String, Ptr<Object<Scope>>>,
+    pub namespaces: Ptr<Object<HashMap>>,
     pub scope: Ptr<Object<Scope>>,
     pub gc: Gc,
 }
@@ -116,6 +114,11 @@ impl Context {
             .supr(AnyType)
             .size(mem::size_of::<Vector>())
             .constructor(gc.new_object(FunctionType, Function::new_rust(Vector::constructor)))
+            .build());
+        let HashMapType = gc.new_object(TypeType, TypeBuilder::new("HashMap")
+            .supr(AnyType)
+            .size(mem::size_of::<HashMap>())
+            .constructor(gc.new_object(FunctionType, Function::new_rust(HashMap::constructor)))
             .build());
 
         let SymbolType = gc.new_object(TypeType, TypeBuilder::new("Symbol")
@@ -200,58 +203,62 @@ impl Context {
         let false_value = gc.new_object(BooleanType, false);
         let nil_value = gc.new_object(NilType, Nil::new());
 
-        let mut namespaces = HashMap::new();
+        let mut namespaces = gc.new_object(HashMapType, HashMap::new());
 
         let mut scope = gc.new_object(ScopeType,
-            Scope::new(Some(gc.new_object(SymbolType, Symbol::new("user".into()))), None));
+            Scope::from_mappings(
+                Some(gc.new_object(SymbolType, Symbol::new("user".into()))),
+                None,
+                gc.new_object(HashMapType, HashMap::new())
+            ));
 
-        namespaces.insert("user".into(), scope);
+        namespaces.set_mut(scope.name.unwrap().as_value(), scope.as_value());
 
-        scope.set("Type", TypeType.as_value());
-        scope.set("Any", AnyType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Type".into())).as_value(), TypeType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Any".into())).as_value(), AnyType.as_value());
 
-        // scope.set("Scope", ScopeType.as_value());
-        scope.set("Function", FunctionType.as_value());
-        scope.set("Macro", MacroType.as_value());
-        scope.set("Nil", NilType.as_value());
+        // scope.set_mut(gc.new_object(SymbolType, Symbol::new("Scope".into())).as_value(), ScopeType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Function".into())).as_value(), FunctionType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Macro".into())).as_value(), MacroType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Nil".into())).as_value(), NilType.as_value());
 
-        scope.set("Reader", ReaderType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Reader".into())).as_value(), ReaderType.as_value());
 
-        scope.set("List", ListType.as_value());
-        scope.set("Vector", VectorType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("List".into())).as_value(), ListType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Vector".into())).as_value(), VectorType.as_value());
 
-        scope.set("Symbol", SymbolType.as_value());
-        scope.set("Keyword", KeywordType.as_value());
-        scope.set("String", StringType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Symbol".into())).as_value(), SymbolType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Keyword".into())).as_value(), KeywordType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("String".into())).as_value(), StringType.as_value());
 
-        scope.set("Number", NumberType.as_value());
-        scope.set("Real", RealType.as_value());
-        scope.set("Float", FloatType.as_value());
-        scope.set("Integer", IntegerType.as_value());
-        scope.set("Signed", SignedType.as_value());
-        scope.set("Unsigned", UnsignedType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Number".into())).as_value(), NumberType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Real".into())).as_value(), RealType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Float".into())).as_value(), FloatType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Integer".into())).as_value(), IntegerType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Signed".into())).as_value(), SignedType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Unsigned".into())).as_value(), UnsignedType.as_value());
 
-        scope.set("Boolean", BooleanType.as_value());
-        scope.set("Char", CharType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Boolean".into())).as_value(), BooleanType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Char".into())).as_value(), CharType.as_value());
 
-        scope.set("Int", IntType.as_value());
-        scope.set("Int8", Int8Type.as_value());
-        scope.set("Int16", Int16Type.as_value());
-        scope.set("Int32", Int32Type.as_value());
-        scope.set("Int64", Int64Type.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Int".into())).as_value(), IntType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Int8".into())).as_value(), Int8Type.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Int16".into())).as_value(), Int16Type.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Int32".into())).as_value(), Int32Type.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Int64".into())).as_value(), Int64Type.as_value());
 
-        scope.set("UInt", UIntType.as_value());
-        scope.set("UInt8", UInt8Type.as_value());
-        scope.set("UInt16", UInt16Type.as_value());
-        scope.set("UInt32", UInt32Type.as_value());
-        scope.set("UInt64", UInt64Type.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("UInt".into())).as_value(), UIntType.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("UInt8".into())).as_value(), UInt8Type.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("UInt16".into())).as_value(), UInt16Type.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("UInt32".into())).as_value(), UInt32Type.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("UInt64".into())).as_value(), UInt64Type.as_value());
 
-        scope.set("Float32", Float32Type.as_value());
-        scope.set("Float64", Float64Type.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Float32".into())).as_value(), Float32Type.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Float64".into())).as_value(), Float64Type.as_value());
 
-        scope.set("true", true_value.as_value());
-        scope.set("false", false_value.as_value());
-        scope.set("nil", nil_value.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("true".into())).as_value(), true_value.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("false".into())).as_value(), false_value.as_value());
+        scope.set_mut(gc.new_object(SymbolType, Symbol::new("nil".into())).as_value(), nil_value.as_value());
 
         Context {
             AnyType: AnyType,
@@ -266,6 +273,7 @@ impl Context {
 
             ListType: ListType,
             VectorType: VectorType,
+            HashMapType: HashMapType,
 
             SymbolType: SymbolType,
             KeywordType: KeywordType,

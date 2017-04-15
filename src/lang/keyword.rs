@@ -3,7 +3,7 @@ use collections::string::String;
 use core::fmt;
 use core::ops::{Deref, DerefMut};
 
-use ::{Context, Ptr};
+use ::{Context, LHash, Ptr};
 
 use super::value::Value;
 use super::object::Object;
@@ -11,6 +11,7 @@ use super::list::List;
 use super::scope::Scope;
 
 
+#[derive(Hash)]
 pub struct Keyword {
     value: String,
 }

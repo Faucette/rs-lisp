@@ -1,9 +1,11 @@
 use core::fmt;
+use core::hash::{Hasher};
 
 use collection_traits::*;
+use hash_map::DefaultHasher;
 use vector;
 
-use ::{Context, Ptr};
+use ::{Context, LHash, Ptr};
 
 use super::object::Object;
 use super::value::Value;
@@ -21,6 +23,14 @@ pub struct Vector {
     tail: Ptr<Object<[Ptr<Value>; SIZE]>>,
     size: Ptr<Object<usize>>,
     shift: usize,
+}
+
+impl LHash for Vector {
+
+    #[inline(always)]
+    fn hash(&self, state: &mut DefaultHasher) {
+        ((&self) as *const _ as usize).hash(state);
+    }
 }
 
 impl Vector {

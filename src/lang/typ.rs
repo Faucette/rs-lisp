@@ -1,10 +1,12 @@
 use collections::string::String;
 
 use core::{fmt, mem, ptr};
+use core::hash::{Hasher};
 
+use hash_map::DefaultHasher;
 use vector::Vector;
 
-use ::{Context, Ptr};
+use ::{Context, LHash, Ptr};
 
 use super::function::Function;
 use super::object::Object;
@@ -30,6 +32,18 @@ pub struct Type {
 
     pub(crate) is_abstract: bool,
     pub(crate) is_bits: bool,
+}
+
+impl LHash for Type {
+
+    #[inline(always)]
+    fn hash(&self, state: &mut DefaultHasher) {
+        self.name.hash(state);
+        self.fields.hash(state);
+        self.constructor.hash(state);
+        self.is_abstract.hash(state);
+        self.is_bits.hash(state);
+    }
 }
 
 unsafe impl Send for Type {}

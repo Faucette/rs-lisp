@@ -1,7 +1,7 @@
 use collection_traits::*;
 use linked_list::LinkedList;
 
-use ::{Context, Ptr};
+use ::{Context, LHash, Ptr};
 use ::lang::{Value, Object, List, Function, Symbol, Struct, Scope, Type};
 
 
@@ -46,9 +46,7 @@ pub fn eval(context: &Context, scope: Ptr<Object<Scope>>, value: Ptr<Value>) -> 
                     let typ = value.typ();
 
                     if typ == context.SymbolType {
-                        let symbol = value.downcast::<Object<Symbol>>().unwrap();
-
-                        if let Some(value) = scope_stack.front().unwrap().get(symbol.value()) {
+                        if let Some(value) = scope_stack.front().unwrap().get(value) {
                             stack.push_front(value);
                         } else {
                             stack.push_front(context.nil_value.as_value());
@@ -334,9 +332,9 @@ pub fn eval(context: &Context, scope: Ptr<Object<Scope>>, value: Ptr<Value>) -> 
                     let value = stack.pop_front().unwrap();
                     let symbol = stack.pop_front().unwrap();
 
-                    let mut scope = scope_stack.front_mut().unwrap();
+                    let scope = scope_stack.front_mut().unwrap();
 
-                    scope.set(&Struct::key_to_string(context, &symbol), value);
+                    scope.set(context, symbol, value);
 
                     stack.push_front(value);
                 },
@@ -383,9 +381,9 @@ pub fn eval(context: &Context, scope: Ptr<Object<Scope>>, value: Ptr<Value>) -> 
                     let mut throw = false;
                     let mut throw_value = context.nil_value.as_value();
 
-                    let mut let_scope = {
+                    let let_scope = {
                         let scope = scope_stack.front().unwrap();
-                        context.gc.new_object(context.ScopeType, Scope::new(None, Some(*scope)))
+                        context.gc.new_object(context.ScopeType, Scope::new(context, None, Some(*scope)))
                     };
 
                     while !names.is_empty(context).value() {
@@ -396,7 +394,7 @@ pub fn eval(context: &Context, scope: Ptr<Object<Scope>>, value: Ptr<Value>) -> 
                         values = values.pop(context);
 
                         match symbol.downcast::<Object<Symbol>>() {
-                            Some(s) => let_scope.set(&**s.value(), value),
+                            Some(_) => let_scope.set(context, symbol, value),
                             None => {
                                 throw = true;
                                 throw_value = value;

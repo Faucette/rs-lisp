@@ -1,6 +1,9 @@
 use core::fmt;
+use core::hash::{Hasher};
 
-use ::{Context, Ptr};
+use hash_map::DefaultHasher;
+
+use ::{Context, LHash, Ptr};
 
 use super::object::Object;
 use super::value::Value;
@@ -15,6 +18,14 @@ pub enum Function {
     Constructor(Ptr<Object<Type>>),
     Rust(fn(&Context, Ptr<Object<Scope>>, Ptr<Object<List>>) -> Ptr<Value>),
     Internal(Ptr<Object<Scope>>, Option<Ptr<Object<Symbol>>>, Ptr<Object<List>>, Ptr<Value>),
+}
+
+impl LHash for Function {
+
+    #[inline(always)]
+    fn hash(&self, state: &mut DefaultHasher) {
+        ((&self) as *const _ as usize).hash(state);
+    }
 }
 
 impl Function {
@@ -90,11 +101,11 @@ impl Ptr<Object<Function>> {
     pub fn get_scope(&self, context: &Context, _scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Object<Scope>> {
         match &***self {
             &Function::Internal(scope, name, mut arg_symbols, _body) => {
-                let mut function_scope =
-                    context.gc.new_object(context.ScopeType, Scope::new(None, Some(scope)));
+                let function_scope =
+                    context.gc.new_object(context.ScopeType, Scope::new(context, None, Some(scope)));
 
                 if let Some(name) = name {
-                    function_scope.set(name.value().clone(), self.as_value());
+                    function_scope.set(context, name.as_value(), self.as_value());
                 }
 
                 while !arg_symbols.is_empty(context).value() {
@@ -105,12 +116,12 @@ impl Ptr<Object<Function>> {
                     arg_symbols = arg_symbols.pop(context);
 
                     let symbol = symbol.downcast::<Object<Symbol>>().unwrap();
-                    function_scope.set(symbol.value().clone(), value);
+                    function_scope.set(context, symbol.as_value(), value);
                 }
 
                 function_scope
             },
-            _ => context.gc.new_object(context.ScopeType, Scope::new(None, None)),
+            _ => context.gc.new_object(context.ScopeType, Scope::new(context, None, None)),
         }
     }
 }

@@ -1,3 +1,4 @@
+mod hash_map;
 mod reader;
 mod _struct;
 mod function;
@@ -12,6 +13,7 @@ mod value;
 mod vector;
 
 
+pub use self::hash_map::HashMap;
 pub use self::reader::Reader;
 pub use self::_struct::Struct;
 pub use self::function::Function;

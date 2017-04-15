@@ -1,14 +1,14 @@
 [package]
-name = "lisp"
+name = "lambda"
 version = "0.1.0"
 authors = ["nathanfaucett <nathanfaucett@gmail.com>"]
 
-keywords = ["lisp"]
-description = "a lisp in rust"
+keywords = ["lambda"]
+description = "a lambda in rust"
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/nathanfaucett/rs-lisp.git"
-homepage = "https://github.com/nathanfaucett/rs-lisp"
+repository = "https://github.com/nathanfaucett/rs-lambda.git"
+homepage = "https://github.com/nathanfaucett/rs-lambda"
 
 [dependencies]
 collection_traits = {git = "https://github.com/nathanfaucett/rs-collection_traits.git"}

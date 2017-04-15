@@ -1,4 +1,4 @@
-lisp
+lambda
 =====
 
-a lisp in rust
+a lambda in rust

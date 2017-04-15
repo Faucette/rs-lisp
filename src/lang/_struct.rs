@@ -1,11 +1,12 @@
 use collections::string::{String, ToString};
 
 use core::fmt;
+use core::hash::{Hasher};
 
 use collection_traits::*;
-use hash_map::HashMap;
+use hash_map::{HashMap, DefaultHasher};
 
-use ::{Context, Ptr};
+use ::{Context, LHash, Ptr};
 
 use super::object::Object;
 use super::typ::Type;
@@ -18,6 +19,14 @@ use super::list::List;
 
 pub struct Struct {
     map: HashMap<String, Ptr<Value>>,
+}
+
+impl LHash for Struct {
+
+    #[inline(always)]
+    fn hash(&self, state: &mut DefaultHasher) {
+        ((&self.map) as *const _ as usize).hash(state);
+    }
 }
 
 impl Struct {

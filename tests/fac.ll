@@ -9,4 +9,4 @@
     1
     (uint_mul x (fac (uint_sub x 1)))))
 
-(fac 65)
+(fac 16)

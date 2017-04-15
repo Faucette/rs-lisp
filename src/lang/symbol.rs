@@ -3,7 +3,7 @@ use collections::string::String;
 use core::fmt;
 use core::ops::{Deref, DerefMut};
 
-use ::{Context, Ptr};
+use ::{Context, LHash, Ptr};
 
 use super::value::Value;
 use super::object::Object;
@@ -12,6 +12,7 @@ use super::keyword::Keyword;
 use super::scope::Scope;
 
 
+#[derive(Hash)]
 pub struct Symbol {
     value: String,
 }
