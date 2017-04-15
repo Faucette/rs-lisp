@@ -1,7 +1,6 @@
 use collections::string::String;
 
-use ::Ptr;
-use ::Context;
+use ::{Ptr, Context};
 use ::lang::{Value, Object, Keyword, Symbol, Scope, List};
 use super::reader::Reader;
 use super::utils;

@@ -3,7 +3,6 @@ name = "lisp"
 version = "0.1.0"
 dependencies = [
  "collection_traits 0.1.0 (git+https://github.com/nathanfaucett/rs-collection_traits.git)",
- "concat_string 0.1.0 (git+https://github.com/nathanfaucett/rs-concat_string.git)",
  "hash_map 0.1.0 (git+https://github.com/nathanfaucett/rs-hash_map.git)",
  "linked_list 0.1.0 (git+https://github.com/nathanfaucett/rs-linked_list.git)",
  "vector 0.1.0 (git+https://github.com/nathanfaucett/rs-vector.git)",
@@ -13,11 +12,6 @@ dependencies = [
 name = "collection_traits"
 version = "0.1.0"
 source = "git+https://github.com/nathanfaucett/rs-collection_traits.git#e29b61b46e8fb805aa20df333acbe9036f3f7fa3"
-
-[[package]]
-name = "concat_string"
-version = "0.1.0"
-source = "git+https://github.com/nathanfaucett/rs-concat_string.git#c9e9dce65bb9435132400f51e11627ddf850e69c"
 
 [[package]]
 name = "hash_map"
@@ -60,7 +54,6 @@ dependencies = [
 
 [metadata]
 "checksum collection_traits 0.1.0 (git+https://github.com/nathanfaucett/rs-collection_traits.git)" = "<none>"
-"checksum concat_string 0.1.0 (git+https://github.com/nathanfaucett/rs-concat_string.git)" = "<none>"
 "checksum hash_map 0.1.0 (git+https://github.com/nathanfaucett/rs-hash_map.git)" = "<none>"
 "checksum linked_list 0.1.0 (git+https://github.com/nathanfaucett/rs-linked_list.git)" = "<none>"
 "checksum prng 0.1.0 (git+https://github.com/nathanfaucett/rs-prng)" = "<none>"

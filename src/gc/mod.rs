@@ -1,3 +1,4 @@
+mod embed_gc;
 mod gc;
 
 

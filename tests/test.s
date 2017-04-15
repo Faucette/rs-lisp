@@ -32,9 +32,9 @@
   (print vec_b)
   (print vec_c))
 
-(deftype Person Any (age, name))
+(deftype Person (age, name) Any)
 
 (def bob (Person 42, "Bob"))
 
-(@ bob :age)
-(@ bob :age 56)
+(let (a 10 b 20)
+  (print a, b))

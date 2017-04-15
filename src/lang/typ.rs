@@ -1,4 +1,4 @@
-use collections::string::{String, ToString};
+use collections::string::String;
 
 use core::{fmt, mem, ptr};
 
@@ -22,11 +22,11 @@ pub struct Type {
     pub(crate) supr: Option<Ptr<Object<Type>>>,
 
     pub(crate) fields: Option<Vector<String>>,
-    pub(crate) types: Option<Vector<Ptr<Object<Type>>>>,
+    //pub(crate) types: Option<Vector<Ptr<Object<Type>>>>,
 
     pub(crate) constructor: Option<Ptr<Object<Function>>>,
 
-    pub(crate) size: usize,
+    //pub(crate) size: usize,
 
     pub(crate) is_abstract: bool,
     pub(crate) is_bits: bool,
@@ -58,65 +58,70 @@ impl Type {
     }
 
     #[inline]
-    pub fn constructor(context: &Context, _scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+    pub fn new(context: &Context, name_value: Ptr<Value>, fields_value: Ptr<Value>, supr_value: Ptr<Value>) -> Ptr<Object<Type>> {
         let name: String = {
-            let value = args.first(context);
-
-            if value.typ() == context.KeywordType {
-                args = args.pop(context);
-                let keyword = value.downcast::<Object<Keyword>>().unwrap();
+            if name_value.typ() == context.KeywordType {
+                let keyword = name_value.downcast::<Object<Keyword>>().unwrap();
                 (*keyword.value()).clone()
-            } else if value.typ() == context.SymbolType {
-                args = args.pop(context);
-                let symbol = value.downcast::<Object<Symbol>>().unwrap();
+            } else if name_value.typ() == context.SymbolType {
+                let symbol = name_value.downcast::<Object<Symbol>>().unwrap();
                 (*symbol.value()).clone()
             } else {
-                panic!("invalid name argument should be keyword") // TODO throw runtime exception
+                String::new()
             }
         };
 
         let supr = {
-            let value = args.first(context);
-
-            if value.typ() == context.TypeType {
-                args = args.pop(context);
-                value.downcast::<Object<Type>>().unwrap()
+            if supr_value.typ() == context.TypeType {
+                supr_value.downcast::<Object<Type>>().unwrap()
             } else {
                 context.AnyType
             }
         };
 
         let typ_value = {
-            let value = args.first(context);
-
-            if value.typ() == context.ListType {
-                let list = value.downcast::<Object<List>>().unwrap();
+            if fields_value.typ() == context.ListType {
+                let list = fields_value.downcast::<Object<List>>().unwrap();
 
                 TypeBuilder::new(name.as_str())
                     .size(mem::size_of::<Struct>())
                     .fields(list.iter().map(|v| Struct::key_to_string(context, &v)).collect())
                     .supr(supr).build()
 
-            } else if value.typ() == context.UIntType {
-                let size = value.downcast::<Object<usize>>().unwrap();
+            } else if fields_value.typ() == context.UIntType {
+                let size = fields_value.downcast::<Object<usize>>().unwrap();
 
                 TypeBuilder::new(name.as_str())
                     .supr(supr).size(*size.value()).is_bits().build()
 
             } else if
-                value.typ() == context.KeywordType &&
-                **value.downcast::<Object<Keyword>>().unwrap().value() == "abstract"
+                fields_value.typ() == context.KeywordType &&
+                **fields_value.downcast::<Object<Keyword>>().unwrap().value() == "abstract"
             {
                 TypeBuilder::new(name.as_str())
                     .supr(supr).is_abstract().build()
             } else {
-                panic!("invalid type argument should be List, UInt64, or Keyword") // TODO throw runtime exception
+                panic!("invalid type argument {:?}", fields_value)
             }
         };
 
         let mut typ = context.gc.new_object(context.TypeType, typ_value);
         typ.value.constructor = Some(context.gc.new_object(context.FunctionType, Function::new_constructor(typ)));
-        typ.as_value()
+        typ
+    }
+
+    #[inline]
+    pub fn constructor(context: &Context, _scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+        let name = args.first(context);
+        args = args.pop(context);
+
+        let fields = args.first(context);
+        args = args.pop(context);
+
+        let supr = args.first(context);
+        //args = args.pop(context);
+
+        Type::new(context, name, fields, supr).as_value()
     }
 }
 
@@ -237,11 +242,11 @@ impl TypeBuilder {
             supr: self.supr,
 
             fields: self.fields,
-            types: self.types,
+            //types: self.types,
 
             constructor: self.constructor,
 
-            size: self.size,
+            //size: self.size,
 
             is_abstract: self.is_abstract,
             is_bits: self.is_bits,

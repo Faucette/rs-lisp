@@ -5,11 +5,10 @@ use core::mem;
 use collection_traits::*;
 use hash_map::HashMap;
 
-use ::Ptr;
-use ::Gc;
+use ::{Ptr, Gc};
 use ::lang::{
-    special_forms, Value, Object, TypeBuilder,
-    Scope, Keyword, Struct, Symbol, List, Vector, Function, Nil, Reader, Type
+    Value, Object, TypeBuilder,
+    Scope, Keyword, Symbol, List, Vector, Function, Nil, Reader, Type
 };
 
 

@@ -6,7 +6,7 @@ use std::io::prelude::*;
 
 
 use lisp::lang::*;
-use lisp::{eval, eval_recur, Ptr, Context};
+use lisp::{eval, Ptr, Context};
 
 
 
@@ -42,7 +42,7 @@ pub fn lisp_uint_add(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Obj
     if left.typ() == context.UIntType && right.typ() == context.UIntType {
         let a = left.downcast::<Object<usize>>().unwrap();
         let b = right.downcast::<Object<usize>>().unwrap();
-        context.gc.new_object(context.UIntType, a.value() + b.value()).as_value()
+        context.gc.new_object(context.UIntType, a.value().wrapping_add(*b.value())).as_value()
     } else {
         context.gc.new_object(context.UIntType, 0usize).as_value()
     }
@@ -70,7 +70,7 @@ pub fn lisp_uint_sub(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Obj
     if left.typ() == context.UIntType && right.typ() == context.UIntType {
         let a = left.downcast::<Object<usize>>().unwrap();
         let b = right.downcast::<Object<usize>>().unwrap();
-        context.gc.new_object(context.UIntType, a.value() - b.value()).as_value()
+        context.gc.new_object(context.UIntType, a.value().wrapping_sub(*b.value())).as_value()
     } else {
         context.gc.new_object(context.UIntType, 0usize).as_value()
     }
@@ -84,7 +84,7 @@ pub fn lisp_uint_mul(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<Obj
     if left.typ() == context.UIntType && right.typ() == context.UIntType {
         let a = left.downcast::<Object<usize>>().unwrap();
         let b = right.downcast::<Object<usize>>().unwrap();
-        context.gc.new_object(context.UIntType, a.value() * b.value()).as_value()
+        context.gc.new_object(context.UIntType, a.value().wrapping_mul(*b.value())).as_value()
     } else {
         context.gc.new_object(context.UIntType, 0usize).as_value()
     }
@@ -113,7 +113,7 @@ fn main() {
     context.scope.set("vec_b", vec_b.as_value());
     context.scope.set("vec_c", vec_c.as_value());
 
-    let mut file = File::open("tests/fac.s").unwrap();
+    let mut file = File::open("tests/test.s").unwrap();
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
     let input = contents.chars().collect();
@@ -124,7 +124,7 @@ fn main() {
     println!("\nAST: {:?}\n", values);
 
     while !values.is_empty(&context).value() {
-        let result = eval_recur(&context, context.scope, values.first(&context));
+        let result = eval(&context, context.scope, values.first(&context));
         println!("{:?}", result);
         values = values.pop(&context);
     }

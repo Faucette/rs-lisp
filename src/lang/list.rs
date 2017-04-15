@@ -1,7 +1,6 @@
 use core::fmt;
 
-use ::Ptr;
-use ::Context;
+use ::{Ptr, Context};
 
 use super::value::Value;
 use super::object::Object;
@@ -73,7 +72,7 @@ impl List {
     pub fn size(&self) -> usize {
         *self.size.value()
     }
-
+    /*
     #[inline]
     fn find_node(&self, index: usize) -> Option<Ptr<Object<Node>>> {
         if index < self.size() {
@@ -89,6 +88,7 @@ impl List {
             None
         }
     }
+    */
 
     #[inline(always)]
     pub fn iter(&self) -> ListIter {
@@ -114,7 +114,7 @@ impl Ptr<Object<List>> {
             context.false_value
         }
     }
-
+    /*
     #[inline(always)]
     fn nth(&self, context: &Context, index: Ptr<Object<usize>>) -> Ptr<Value> {
         match self.find_node(*index.value()) {
@@ -122,6 +122,7 @@ impl Ptr<Object<List>> {
             None => context.nil_value.as_value(),
         }
     }
+    */
 
     #[inline]
     pub fn push(&self, context: &Context, data: Ptr<Value>) -> Self {

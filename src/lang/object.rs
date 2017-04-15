@@ -2,8 +2,8 @@ use core::fmt;
 use core::ops::{Deref, DerefMut};
 use core::hash::{Hash, Hasher};
 
-use ::{Context, Ptr};
-use ::lang::{Value, Type, List, Callable, Scope};
+use ::Ptr;
+use ::lang::{Value, Type};
 
 
 pub struct Object<T> {
@@ -49,14 +49,6 @@ impl<T: 'static + fmt::Debug> Value for Object<T> {
     #[inline(always)]
     fn typ(&self) -> Ptr<Object<Type>> {
         self.typ
-    }
-}
-
-impl<T: Callable> Callable for Object<T> {
-
-    #[inline(always)]
-    fn call(&self, context: &Context, scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
-        Callable::call(self.value(), context, scope, args)
     }
 }
 

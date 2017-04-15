@@ -1,7 +1,5 @@
 mod reader;
-pub mod special_forms;
 mod _struct;
-mod callable;
 mod function;
 mod keyword;
 mod list;
@@ -16,7 +14,6 @@ mod vector;
 
 pub use self::reader::Reader;
 pub use self::_struct::Struct;
-pub use self::callable::Callable;
 pub use self::function::Function;
 pub use self::keyword::Keyword;
 pub use self::list::List;

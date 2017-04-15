@@ -5,9 +5,8 @@ use core::fmt;
 use collection_traits::*;
 use vector::Vector;
 
-use ::Ptr;
-use ::Context;
-use ::lang::{Value, Object, Callable, Function, Scope, List};
+use ::{Ptr, Context};
+use ::lang::{Value, Object, Function, Scope, List};
 
 use super::comment_reader::comment_reader;
 use super::identifier_reader::identifier_reader;
@@ -114,7 +113,10 @@ impl Ptr<Object<Reader>> {
                 let mut args = context.gc.new_object(context.ListType, List::new(context));
                 args.push_back_mut(context, self.as_value());
 
-                let ret = reader.call(context, scope, args);
+                let ret = match &***reader {
+                    &Function::Rust(ref fn_ptr) => (fn_ptr)(context, scope, args),
+                    _ => panic!("can not call non rust readers right now!"),
+                };
 
                 if ret.typ() == context.ListType {
                     let ret_list = ret.downcast::<Object<List>>().unwrap();

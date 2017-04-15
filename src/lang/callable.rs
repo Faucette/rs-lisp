@@ -1,5 +1,4 @@
-use ::Ptr;
-use ::Context;
+use ::{Ptr, Context};
 
 use super::value::Value;
 use super::object::Object;

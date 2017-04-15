@@ -1,8 +1,6 @@
-use ::Ptr;
-use ::Context;
+use ::{Ptr, Context};
 use ::lang::{Value, Object, Scope, List};
 use super::reader::Reader;
-use super::utils;
 
 
 pub fn comment_reader(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {

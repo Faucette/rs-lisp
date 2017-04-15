@@ -4,7 +4,6 @@ use core::fmt;
 
 use collection_traits::*;
 use hash_map::HashMap;
-use vector::Vector;
 
 use ::{Context, Ptr};
 
@@ -77,7 +76,7 @@ impl Struct {
     }
 
     #[inline]
-    pub fn access(context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
+    pub fn access(context: &Context, _scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
         let value = args.first(context);
 
         match value.downcast::<Object<Struct>>() {

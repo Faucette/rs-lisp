@@ -1,16 +1,14 @@
 use core::fmt;
 
-use ::{Context, Ptr, eval};
+use ::{Context, Ptr};
 
 use super::object::Object;
 use super::value::Value;
 use super::typ::Type;
 use super::list::List;
 use super::scope::Scope;
-use super::_struct::Struct;
 use super::symbol::Symbol;
 use super::keyword::Keyword;
-use super::callable::Callable;
 
 
 pub enum Function {
@@ -89,9 +87,9 @@ impl Function {
 impl Ptr<Object<Function>> {
 
     #[inline]
-    pub fn get_scope(&self, context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Object<Scope>> {
+    pub fn get_scope(&self, context: &Context, _scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Object<Scope>> {
         match &***self {
-            &Function::Internal(scope, name, mut arg_symbols, body) => {
+            &Function::Internal(scope, name, mut arg_symbols, _body) => {
                 let mut function_scope =
                     context.gc.new_object(context.ScopeType, Scope::new(None, Some(scope)));
 
@@ -113,38 +111,6 @@ impl Ptr<Object<Function>> {
                 function_scope
             },
             _ => context.gc.new_object(context.ScopeType, Scope::new(None, None)),
-        }
-    }
-}
-
-impl Callable for Ptr<Object<Function>> {
-
-    #[inline]
-    fn call(&self, context: &Context, scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
-        match &***self {
-            &Function::Constructor(typ) => Struct::constructor(context, typ, args),
-            &Function::Rust(ref fn_ptr) => Callable::call(fn_ptr, context, scope, args),
-            &Function::Internal(scope, name, mut arg_symbols, body) => {
-                let mut function_scope =
-                    context.gc.new_object(context.ScopeType, Scope::new(None, Some(scope)));
-
-                if let Some(name) = name {
-                    function_scope.set(name.value().clone(), self.as_value());
-                }
-
-                while !arg_symbols.is_empty(context).value() {
-                    let symbol = arg_symbols.first(context);
-                    let value = args.first(context);
-
-                    args = args.pop(context);
-                    arg_symbols = arg_symbols.pop(context);
-
-                    let symbol = symbol.downcast::<Object<Symbol>>().unwrap();
-                    function_scope.set(symbol.value().clone(), value);
-                }
-
-                eval(context, function_scope, body)
-            },
         }
     }
 }

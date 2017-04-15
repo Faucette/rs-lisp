@@ -15,6 +15,5 @@ collection_traits = {git = "https://github.com/nathanfaucett/rs-collection_trait
 linked_list = {git = "https://github.com/nathanfaucett/rs-linked_list.git"}
 hash_map = {git = "https://github.com/nathanfaucett/rs-hash_map.git"}
 vector = {git = "https://github.com/nathanfaucett/rs-vector.git"}
-concat_string = {git = "https://github.com/nathanfaucett/rs-concat_string.git"}
 
 [dev-dependencies]
