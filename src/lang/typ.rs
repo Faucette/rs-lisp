@@ -1,12 +1,12 @@
 use collections::string::String;
 
 use core::{fmt, mem, ptr};
-use core::hash::{Hasher};
+use core::hash::Hash;
 
 use hash_map::DefaultHasher;
 use vector::Vector;
 
-use ::{Context, LHash, Ptr};
+use ::{Context, Ptr};
 
 use super::function::Function;
 use super::object::Object;
@@ -32,18 +32,6 @@ pub struct Type {
 
     pub(crate) is_abstract: bool,
     pub(crate) is_bits: bool,
-}
-
-impl LHash for Type {
-
-    #[inline(always)]
-    fn hash(&self, state: &mut DefaultHasher) {
-        self.name.hash(state);
-        self.fields.hash(state);
-        self.constructor.hash(state);
-        self.is_abstract.hash(state);
-        self.is_bits.hash(state);
-    }
 }
 
 unsafe impl Send for Type {}
@@ -139,6 +127,21 @@ impl Type {
     }
 }
 
+impl Hash for Type {
+
+    #[inline(always)]
+    fn hash(&self, state: &mut DefaultHasher) {
+        self.name.hash(state);
+        self.fields.hash(state);
+        match self.constructor {
+            Some(constructor) => Hash::hash(&*constructor, state),
+            None => (),
+        }
+        self.is_abstract.hash(state);
+        self.is_bits.hash(state);
+    }
+}
+
 impl PartialEq for Type {
 
     #[inline(always)]
@@ -146,6 +149,8 @@ impl PartialEq for Type {
         ptr::eq(self, other)
     }
 }
+
+impl Eq for Type {}
 
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

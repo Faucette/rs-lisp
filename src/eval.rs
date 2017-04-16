@@ -1,7 +1,7 @@
 use collection_traits::*;
 use linked_list::LinkedList;
 
-use ::{Context, LHash, Ptr};
+use ::{Context, Ptr};
 use ::lang::{Value, Object, List, Function, Symbol, Struct, Scope, Type};
 
 

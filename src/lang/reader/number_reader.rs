@@ -1,6 +1,6 @@
 use collections::string::String;
 
-use ::{Context, LHash, Ptr};
+use ::{Context, Ptr};
 use ::lang::{Value, Object, Scope, List};
 use super::reader::Reader;
 

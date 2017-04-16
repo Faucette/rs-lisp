@@ -2,11 +2,6 @@ use alloc::boxed::Box;
 
 use core::{fmt, ptr};
 use core::ops::{Deref, DerefMut};
-use core::hash::{Hasher};
-
-use hash_map::DefaultHasher;
-
-use super::lhash::LHash;
 
 
 pub struct Ptr<T: ?Sized> {
@@ -110,14 +105,6 @@ impl<T: ?Sized + PartialEq> PartialEq for Ptr<T> {
         unsafe {
             &*self.ptr == &*other.ptr
         }
-    }
-}
-
-impl<T: ?Sized + LHash> LHash for Ptr<T> {
-
-    #[inline(always)]
-    fn hash(&self, state: &mut DefaultHasher) {
-        self.as_ref().hash(state);
     }
 }
 

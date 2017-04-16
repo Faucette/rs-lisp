@@ -2,11 +2,12 @@ use alloc::boxed::Box;
 use alloc::heap;
 
 use core::{fmt, mem};
+use core::hash::Hash;
 
 use collection_traits::*;
 use linked_list::LinkedList;
 
-use ::{LHash, Ptr};
+use ::Ptr;
 use ::lang::{Object, Type, Value};
 
 
@@ -30,7 +31,9 @@ impl EmbedGc {
     }
 
     #[inline]
-    pub fn new_object<T: 'static + LHash + fmt::Debug>(&self, typ: Ptr<Object<Type>>, value: T) -> Ptr<Object<T>> {
+    pub fn new_object<T>(&self, typ: Ptr<Object<Type>>, value: T) -> Ptr<Object<T>>
+        where T: 'static + fmt::Debug + Hash + PartialEq<T>
+    {
         let value = Box::into_raw(Box::new(Object::new(typ, value)));
 
 
@@ -43,7 +46,9 @@ impl EmbedGc {
     }
 
     #[inline(always)]
-    pub fn new_null_typ_object<T: 'static + LHash + fmt::Debug>(&self, value: T) -> Ptr<Object<T>> {
+    pub fn new_null_typ_object<T>(&self, value: T) -> Ptr<Object<T>>
+        where T: 'static + fmt::Debug + Hash + PartialEq<T>
+    {
         self.new_object(unsafe {mem::uninitialized()}, value)
     }
 }

@@ -1,10 +1,10 @@
 use core::fmt;
+use core::hash::Hash;
 use core::ops::{Deref, DerefMut};
-use core::hash::{Hasher};
 
 use hash_map::DefaultHasher;
 
-use ::{LHash, Ptr};
+use ::Ptr;
 use ::lang::{Value, Type};
 
 
@@ -36,7 +36,7 @@ impl<T> Object<T> {
     }
 }
 
-impl<T: 'static + fmt::Debug> Ptr<Object<T>> {
+impl<T: 'static + fmt::Debug + PartialEq<T>> Ptr<Object<T>> {
 
     #[inline(always)]
     pub fn as_value(&self) -> Ptr<Value> {
@@ -46,14 +46,18 @@ impl<T: 'static + fmt::Debug> Ptr<Object<T>> {
     }
 }
 
-impl<T: 'static + LHash + fmt::Debug> Value for Object<T> {
+impl<T: 'static + fmt::Debug + PartialEq<T>> Value for Object<T> {
 
     #[inline(always)]
     fn typ(&self) -> Ptr<Object<Type>> {
         self.typ
     }
-    fn hash(&self, hasher: &mut DefaultHasher) {
-        self.value.hash(hasher);
+    #[inline(always)]
+    fn equals(&self, other: Ptr<Value>) -> bool {
+        match other.downcast::<Object<T>>() {
+            Some(other) => self.eq(&*other),
+            None => false,
+        }
     }
 }
 
@@ -96,7 +100,7 @@ impl<T: PartialEq> PartialEq for Object<T> {
 
 impl<T: Eq> Eq for Object<T> {}
 
-impl<T: LHash> LHash for Object<T> {
+impl<T: Hash> Hash for Object<T> {
 
     #[inline(always)]
     fn hash(&self, state: &mut DefaultHasher) {

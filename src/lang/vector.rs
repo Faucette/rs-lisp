@@ -1,11 +1,11 @@
 use core::fmt;
-use core::hash::{Hasher};
+use core::hash::Hash;
 
 use collection_traits::*;
 use hash_map::DefaultHasher;
 use vector;
 
-use ::{Context, LHash, Ptr};
+use ::{Context, Ptr};
 
 use super::object::Object;
 use super::value::Value;
@@ -23,14 +23,6 @@ pub struct Vector {
     tail: Ptr<Object<[Ptr<Value>; SIZE]>>,
     size: Ptr<Object<usize>>,
     shift: usize,
-}
-
-impl LHash for Vector {
-
-    #[inline(always)]
-    fn hash(&self, state: &mut DefaultHasher) {
-        ((&self) as *const _ as usize).hash(state);
-    }
 }
 
 impl Vector {
@@ -255,6 +247,41 @@ impl<'a> Iterator for VectorIter<'a> {
     }
 }
 
+
+impl Hash for Vector {
+
+    #[inline(always)]
+    fn hash(&self, state: &mut DefaultHasher) {
+        Hash::hash(&*self.root, state);
+        Hash::hash(&*self.tail, state);
+        Hash::hash(&*self.size, state);
+        Hash::hash(&self.shift, state);
+    }
+}
+
+impl PartialEq for Vector {
+
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        if self.size.value() == other.size.value() {
+            let mut bit = other.iter();
+
+            for a in self.iter() {
+                match bit.next() {
+                    Some(b) => if a.equals(b) {
+                        return false;
+                    },
+                    None => return false,
+                }
+            }
+            true
+        } else {
+            false
+        }
+    }
+}
+
+impl Eq for Vector {}
 
 impl fmt::Display for Vector {
 

@@ -1,15 +1,17 @@
-use core::fmt;
+use core::{fmt, mem};
+use core::hash::{Hash, Hasher};
 use core::any::{Any, TypeId};
 
 use hash_map::DefaultHasher;
 
-use ::{LHash, Ptr};
+use ::Ptr;
 use ::lang::{Object, Type};
 
 
 pub trait Value: Any + fmt::Debug {
     fn typ(&self) -> Ptr<Object<Type>>;
-    fn hash(&self, &mut DefaultHasher);
+    fn equals(&self, other: Ptr<Value>) -> bool;
+    fn hash(&self, h: &mut DefaultHasher);
 }
 
 impl Ptr<Value> {
@@ -36,13 +38,35 @@ impl Ptr<Value> {
     }
 }
 
+impl Hash for Ptr<Value> {
+
+    #[inline(always)]
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.hash(state);
+    }
+}
+
+impl PartialEq for Ptr<Value> {
+
+    #[inline(always)]
+    fn eq(&self, other: &Ptr<Value>) -> bool {
+        self.equals(*other)
+    }
+}
+
+impl Eq for Ptr<Value> {}
+
 impl fmt::Display for Ptr<Value> {
+
+    #[inline(always)]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Debug::fmt(&**self, f)
     }
 }
 
 impl fmt::Debug for Ptr<Value> {
+
+    #[inline(always)]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Debug::fmt(&**self, f)
     }

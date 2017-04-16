@@ -1,11 +1,13 @@
 use collections::string::String;
 
 use core::fmt;
+use core::hash::{Hash, Hasher};
 
 use collection_traits::*;
 use vector::Vector;
+use hash_map::DefaultHasher;
 
-use ::{Context, LHash, Ptr};
+use ::{Context, Ptr};
 use ::lang::{Value, Object, Function, Scope, List};
 
 use super::comment_reader::comment_reader;
@@ -19,7 +21,6 @@ use super::vector_reader::vector_reader;
 use super::whitespace_reader::whitespace_reader;
 
 
-#[derive(Hash)]
 pub struct Reader {
     readers: Vector<Ptr<Object<Function>>>,
     input: Vector<char>,
@@ -159,6 +160,31 @@ impl Ptr<Object<Reader>> {
         list
     }
 }
+
+impl Hash for Reader {
+
+    #[inline]
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        for reader in self.readers.iter() {
+            Hash::hash(&**reader, state);
+        }
+        self.input.hash(state);
+        self.index.hash(state);
+        self.row.hash(state);
+        self.col.hash(state);
+    }
+}
+
+impl PartialEq for Reader {
+
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        PartialEq::eq(&self.readers, &other.readers) &&
+        PartialEq::eq(&self.input, &other.input)
+    }
+}
+
+impl Eq for Reader {}
 
 impl fmt::Display for Reader {
 

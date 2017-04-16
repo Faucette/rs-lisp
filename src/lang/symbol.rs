@@ -1,9 +1,12 @@
 use collections::string::String;
 
-use core::fmt;
+use core::{fmt, hash};
+use core::hash::Hash;
 use core::ops::{Deref, DerefMut};
 
-use ::{Context, LHash, Ptr};
+use hash_map::DefaultHasher;
+
+use ::{Context, Ptr};
 
 use super::value::Value;
 use super::object::Object;
@@ -12,7 +15,6 @@ use super::keyword::Keyword;
 use super::scope::Scope;
 
 
-#[derive(Hash)]
 pub struct Symbol {
     value: String,
 }
@@ -42,6 +44,24 @@ impl Symbol {
         context.gc.new_object(context.SymbolType, Self::new(name)).as_value()
     }
 }
+
+impl Hash for Symbol {
+
+    #[inline(always)]
+    fn hash(&self, state: &mut DefaultHasher) {
+        hash::Hash::hash(&self.value, state);
+    }
+}
+
+impl PartialEq for Symbol {
+
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        PartialEq::eq(&self.value, &other.value)
+    }
+}
+
+impl Eq for Symbol {}
 
 impl fmt::Display for Symbol {
 

@@ -1,15 +1,16 @@
 use core::fmt;
-use core::hash::{Hasher, BuildHasher};
+use core::hash::{Hash, Hasher};
 
 use hash_map;
 use collection_traits::*;
 
-use ::{Context, LHash, Ptr};
+use ::{Context, Ptr};
 use ::lang::{Object, Value, List, Scope};
 
 
 pub struct HashMap {
-    map: hash_map::HashMap<u64, Ptr<Value>>,
+    //map: hash_map::HashMap<Ptr<Value>, Ptr<Value>>,
+    map: hash_map::HashMap<Ptr<Value>, Ptr<Value>>,
 }
 
 impl HashMap {
@@ -41,20 +42,13 @@ impl HashMap {
     }
 
     #[inline]
-    pub fn key_hash(&self, key: Ptr<Value>) -> u64 {
-        let mut hasher = self.map.hasher().build_hasher();
-        key.typ().hash(&mut hasher);
-        hasher.finish()
-    }
-
-    #[inline]
     pub fn contains_key(&self, key: Ptr<Value>) -> bool {
-        self.map.contains_key(&self.key_hash(key))
+        self.map.contains_key(&key)
     }
 
     #[inline(always)]
     pub fn get(&self, key: Ptr<Value>) -> Option<Ptr<Value>> {
-        match self.map.get(&self.key_hash(key)) {
+        match self.map.get(&key) {
             Some(value) => Some(*value),
             None => None,
         }
@@ -62,12 +56,12 @@ impl HashMap {
 
     #[inline]
     pub fn set_mut(&mut self, key: Ptr<Value>, value: Ptr<Value>) {
-        let hash = self.key_hash(key);
+        let hash = key;
         self.map.insert(hash, value);
     }
 
     #[inline(always)]
-    pub fn iter(&self) -> hash_map::Iter<u64, Ptr<Value>> {
+    pub fn iter(&self) -> hash_map::Iter<Ptr<Value>, Ptr<Value>> {
         self.map.iter()
     }
 }
@@ -84,13 +78,13 @@ impl Ptr<Object<HashMap>> {
     #[inline]
     pub fn set(&self, context: &Context, key: Ptr<Value>, value: Ptr<Value>) -> Self {
         let mut new_map = self.clone(context);
-        new_map.map.insert(self.key_hash(key), value);
+        new_map.map.insert(key, value);
         new_map
     }
 
     #[inline(always)]
     pub fn get(&self, context: &Context, key: Ptr<Value>) -> Ptr<Value> {
-        match self.map.get(&self.key_hash(key)) {
+        match self.map.get(&key) {
             Some(value) => *value,
             None => context.nil_value.as_value(),
         }
@@ -100,7 +94,7 @@ impl Ptr<Object<HashMap>> {
     pub fn remove(&self, context: &Context, key: Ptr<Value>) -> Self {
         if self.contains_key(key) {
             let mut new_map = self.clone(context);
-            new_map.map.remove(&self.key_hash(key));
+            new_map.map.remove(&key);
             new_map
         } else {
             *self
@@ -108,13 +102,40 @@ impl Ptr<Object<HashMap>> {
     }
 }
 
-impl LHash for HashMap {
+impl Hash for HashMap {
 
     #[inline(always)]
-    fn hash(&self, state: &mut hash_map::DefaultHasher) {
-        ((&self.map) as *const _ as usize).hash(state);
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        for (k, v) in self.iter() {
+            Hash::hash(k, state);
+            Hash::hash(v, state);
+        }
     }
 }
+
+impl PartialEq for HashMap {
+
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        if self.map.len() == other.map.len() {
+            for (ak, av) in self.map.iter() {
+                match other.map.get(ak) {
+                    Some(bv) => if av.equals(*bv) {
+                        return false;
+                    },
+                    None => {
+                        return false;
+                    },
+                }
+            }
+            true
+        } else {
+            false
+        }
+    }
+}
+
+impl Eq for HashMap {}
 
 impl fmt::Display for HashMap {
 

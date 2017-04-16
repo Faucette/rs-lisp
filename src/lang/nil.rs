@@ -1,6 +1,9 @@
 use core::fmt;
+use core::hash::Hash;
 
-use ::{Context, LHash, Ptr};
+use hash_map::DefaultHasher;
+
+use ::{Context, Ptr};
 
 use super::value::Value;
 use super::object::Object;
@@ -8,7 +11,7 @@ use super::list::List;
 use super::scope::Scope;
 
 
-#[derive(Hash, PartialEq)]
+#[derive(Hash)]
 pub struct Nil;
 
 impl Nil {
@@ -21,6 +24,16 @@ impl Nil {
         context.nil_value.as_value()
     }
 }
+
+impl PartialEq for Nil {
+
+    #[inline(always)]
+    fn eq(&self, _: &Self) -> bool {
+        true
+    }
+}
+
+impl Eq for Nil {}
 
 impl fmt::Display for Nil {
     #[inline]

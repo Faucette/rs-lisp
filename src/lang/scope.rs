@@ -1,10 +1,10 @@
 use core::sync::atomic::{AtomicPtr, Ordering};
-use core::fmt;
-use core::hash::{Hasher};
+use core::{fmt, ptr};
+use core::hash::Hash;
 
 use hash_map::DefaultHasher;
 
-use ::{Context, LHash, Ptr};
+use ::{Context, Ptr};
 
 use super::object::Object;
 use super::value::Value;
@@ -16,14 +16,6 @@ pub struct Scope {
     pub(crate) name: Option<Ptr<Object<Symbol>>>,
     pub(crate) parent: Option<Ptr<Object<Scope>>>,
     pub(crate) mappings: AtomicPtr<Object<HashMap>>,
-}
-
-impl LHash for Scope {
-
-    #[inline(always)]
-    fn hash(&self, state: &mut DefaultHasher) {
-        ((&self) as *const _ as usize).hash(state);
-    }
 }
 
 impl Scope {
@@ -135,6 +127,32 @@ impl Scope {
         }
     }
 }
+
+impl Hash for Scope {
+
+    #[inline]
+    fn hash(&self, state: &mut DefaultHasher) {
+        match self.name {
+            Some(name) => Hash::hash(&*name, state),
+            None => (),
+        }
+        match self.parent {
+            Some(parent) => Hash::hash(&*parent, state),
+            None => (),
+        }
+        Hash::hash(&self.mappings, state);
+    }
+}
+
+impl PartialEq for Scope {
+
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        ptr::eq(self, other)
+    }
+}
+
+impl Eq for Scope {}
 
 impl fmt::Display for Scope {
 

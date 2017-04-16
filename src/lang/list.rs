@@ -1,9 +1,9 @@
 use core::fmt;
-use core::hash::{Hasher};
+use core::hash::Hash;
 
 use hash_map::DefaultHasher;
 
-use ::{Context, LHash, Ptr};
+use ::{Context, Ptr};
 
 use super::value::Value;
 use super::object::Object;
@@ -13,14 +13,6 @@ use super::scope::Scope;
 struct Node {
     next: Option<Ptr<Object<Node>>>,
     data: Ptr<Value>,
-}
-
-impl LHash for Node {
-
-    #[inline(always)]
-    fn hash(&self, state: &mut DefaultHasher) {
-        ((&self) as *const _ as usize).hash(state);
-    }
 }
 
 impl Node {
@@ -36,6 +28,29 @@ impl Node {
         }
     }
 }
+
+impl Hash for Node {
+
+    #[inline(always)]
+    fn hash(&self, state: &mut DefaultHasher) {
+        match self.next {
+            Some(next) => Hash::hash(&*next, state),
+            None => (),
+        }
+        Hash::hash(&self.data, state);
+    }
+}
+
+impl PartialEq for Node {
+
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        PartialEq::eq(&self.next, &other.next) &&
+        self.data.equals(other.data)
+    }
+}
+
+impl Eq for Node {}
 
 impl fmt::Display for Node {
 
@@ -58,14 +73,6 @@ pub struct List {
     root: Option<Ptr<Object<Node>>>,
     tail: Option<Ptr<Object<Node>>>,
     size: Ptr<Object<usize>>,
-}
-
-impl LHash for List {
-
-    #[inline(always)]
-    fn hash(&self, state: &mut DefaultHasher) {
-        ((&self) as *const _ as usize).hash(state);
-    }
 }
 
 unsafe impl Send for List {}
@@ -237,6 +244,46 @@ impl Iterator for ListIter {
         (self.size, Some(self.size))
     }
 }
+
+impl Hash for List {
+
+    #[inline(always)]
+    fn hash(&self, state: &mut DefaultHasher) {
+        match self.root {
+            Some(root) => Hash::hash(&*root, state),
+            None => (),
+        }
+        match self.tail {
+            Some(tail) => Hash::hash(&*tail, state),
+            None => (),
+        }
+        Hash::hash(&*self.size, state);
+    }
+}
+
+impl PartialEq for List {
+
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        if self.size.value() == other.size.value() {
+            let mut bit = other.iter();
+
+            for a in self.iter() {
+                match bit.next() {
+                    Some(b) => if a.equals(b) {
+                        return false;
+                    },
+                    None => return false,
+                }
+            }
+            true
+        } else {
+            false
+        }
+    }
+}
+
+impl Eq for List {}
 
 impl fmt::Display for List {
 

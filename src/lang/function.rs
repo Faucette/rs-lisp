@@ -1,9 +1,9 @@
-use core::fmt;
-use core::hash::{Hasher};
+use core::{fmt, ptr};
+use core::hash::Hash;
 
 use hash_map::DefaultHasher;
 
-use ::{Context, LHash, Ptr};
+use ::{Context, Ptr};
 
 use super::object::Object;
 use super::value::Value;
@@ -18,14 +18,6 @@ pub enum Function {
     Constructor(Ptr<Object<Type>>),
     Rust(fn(&Context, Ptr<Object<Scope>>, Ptr<Object<List>>) -> Ptr<Value>),
     Internal(Ptr<Object<Scope>>, Option<Ptr<Object<Symbol>>>, Ptr<Object<List>>, Ptr<Value>),
-}
-
-impl LHash for Function {
-
-    #[inline(always)]
-    fn hash(&self, state: &mut DefaultHasher) {
-        ((&self) as *const _ as usize).hash(state);
-    }
 }
 
 impl Function {
@@ -125,6 +117,24 @@ impl Ptr<Object<Function>> {
         }
     }
 }
+
+impl Hash for Function {
+
+    #[inline(always)]
+    fn hash(&self, state: &mut DefaultHasher) {
+        ((&self) as *const _ as usize).hash(state);
+    }
+}
+
+impl PartialEq for Function {
+
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        ptr::eq(self, other)
+    }
+}
+
+impl Eq for Function {}
 
 impl fmt::Display for Function {
 

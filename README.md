@@ -1,4 +1,4 @@
 lambda
 =====
 
-a lambda in rust
+lambda is a lisp in rust

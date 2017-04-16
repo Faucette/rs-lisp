@@ -1,9 +1,12 @@
 use collections::string::String;
 
 use core::fmt;
+use core::hash::Hash;
 use core::ops::{Deref, DerefMut};
 
-use ::{Context, LHash, Ptr};
+use hash_map::DefaultHasher;
+
+use ::{Context, Ptr};
 
 use super::value::Value;
 use super::object::Object;
@@ -11,7 +14,6 @@ use super::list::List;
 use super::scope::Scope;
 
 
-#[derive(Hash)]
 pub struct Keyword {
     value: String,
 }
@@ -41,6 +43,24 @@ impl Keyword {
         context.gc.new_object(context.KeywordType, Self::new(name)).as_value()
     }
 }
+
+impl Hash for Keyword {
+
+    #[inline(always)]
+    fn hash(&self, state: &mut DefaultHasher) {
+        Hash::hash(&self.value, state);
+    }
+}
+
+impl PartialEq for Keyword {
+
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        PartialEq::eq(&self.value, &other.value)
+    }
+}
+
+impl Eq for Keyword {}
 
 impl fmt::Display for Keyword {
 

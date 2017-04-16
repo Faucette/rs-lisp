@@ -21,7 +21,6 @@ pub mod gc;
 pub mod lang;
 pub mod context;
 mod eval;
-mod lhash;
 mod ptr;
 
 
@@ -29,5 +28,4 @@ pub use self::gc::*;
 pub use self::lang::*;
 pub use self::context::Context;
 pub use self::eval::eval;
-pub use self::lhash::LHash;
 pub use self::ptr::Ptr;
