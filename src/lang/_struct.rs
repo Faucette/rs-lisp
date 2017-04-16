@@ -113,18 +113,7 @@ impl fmt::Display for Struct {
 
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{")?;
-        let mut it = self.map.iter();
-        while let Some((key, value)) = it.next() {
-            let (size, _) = it.size_hint();
-
-            if size > 0 {
-                write!(f, ":{} {:?} ", key, value)?;
-            } else {
-                write!(f, ":{} {:?}", key, value)?;
-            }
-        }
-        write!(f, "}}")
+        fmt::Display::fmt(&self.map, f)
     }
 }
 

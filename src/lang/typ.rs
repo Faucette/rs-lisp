@@ -162,18 +162,22 @@ impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.fields {
             Some(ref fields) => {
-                write!(f, "(type {} [", self.name)?;
+                write!(f, "(type {} (", self.name)?;
                 let mut it = fields.iter();
                 while let Some(key) = it.next() {
                     let (size, _) = it.size_hint();
 
                     if size > 0 {
-                        write!(f, ":{} ", key)?;
+                        write!(f, "{} ", key)?;
                     } else {
-                        write!(f, ":{}", key)?;
+                        write!(f, "{}", key)?;
                     }
                 }
-                write!(f, "])")
+
+                match self.supr {
+                    Some(supr) => write!(f, ") {})", supr.name),
+                    None => write!(f, "))"),
+                }
             },
             None => write!(f, "(type {})", self.name)
         }

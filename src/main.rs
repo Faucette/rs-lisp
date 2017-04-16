@@ -102,7 +102,7 @@ fn main() {
     context.scope.set(&context, context.symbol("print").as_value(),
         context.gc.new_object(context.FunctionType, Function::new_rust(lambda_print)).as_value());
 
-    let mut file = File::open("tests/fac.ll").unwrap();
+    let mut file = File::open("tests/test.ll").unwrap();
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
     let input = contents.chars().collect();
