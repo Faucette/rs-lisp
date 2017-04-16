@@ -4,8 +4,6 @@ version = "0.1.0"
 dependencies = [
  "collection_traits 0.1.0 (git+https://github.com/nathanfaucett/rs-collection_traits.git)",
  "hash_map 0.1.0 (git+https://github.com/nathanfaucett/rs-hash_map.git)",
- "linked_list 0.1.0 (git+https://github.com/nathanfaucett/rs-linked_list.git)",
- "vector 0.1.0 (git+https://github.com/nathanfaucett/rs-vector.git)",
 ]
 
 [[package]]
@@ -24,14 +22,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "linked_list"
-version = "0.1.0"
-source = "git+https://github.com/nathanfaucett/rs-linked_list.git#b5e1aef9d7b4641d3f03afc575858ffbd354910b"
-dependencies = [
- "collection_traits 0.1.0 (git+https://github.com/nathanfaucett/rs-collection_traits.git)",
-]
-
-[[package]]
 name = "prng"
 version = "0.1.0"
 source = "git+https://github.com/nathanfaucett/rs-prng#1e4d90224cd211818c85dea2ad477b36c22cb81e"
@@ -44,18 +34,8 @@ name = "rng"
 version = "0.1.0"
 source = "git+https://github.com/nathanfaucett/rs-rng#1b0519dd3478aadd430003aef670633c8812e34a"
 
-[[package]]
-name = "vector"
-version = "0.1.0"
-source = "git+https://github.com/nathanfaucett/rs-vector.git#5890b0f31ad8256b02652e80e865efe98ddf3185"
-dependencies = [
- "collection_traits 0.1.0 (git+https://github.com/nathanfaucett/rs-collection_traits.git)",
-]
-
 [metadata]
 "checksum collection_traits 0.1.0 (git+https://github.com/nathanfaucett/rs-collection_traits.git)" = "<none>"
 "checksum hash_map 0.1.0 (git+https://github.com/nathanfaucett/rs-hash_map.git)" = "<none>"
-"checksum linked_list 0.1.0 (git+https://github.com/nathanfaucett/rs-linked_list.git)" = "<none>"
 "checksum prng 0.1.0 (git+https://github.com/nathanfaucett/rs-prng)" = "<none>"
 "checksum rng 0.1.0 (git+https://github.com/nathanfaucett/rs-rng)" = "<none>"
-"checksum vector 0.1.0 (git+https://github.com/nathanfaucett/rs-vector.git)" = "<none>"

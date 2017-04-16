@@ -91,18 +91,18 @@ pub fn lambda_uint_mul(context: &Context, _: Ptr<Object<Scope>>, mut args: Ptr<O
 fn main() {
     let context = Context::new();
 
-    context.scope.set(&context, context.gc.new_object(context.StringType, String::from("uint_eq")).as_value(),
+    context.scope.set(&context, context.symbol("uint_eq").as_value(),
         context.gc.new_object(context.FunctionType, Function::new_rust(lambda_uint_eq)).as_value());
-    context.scope.set(&context, context.gc.new_object(context.StringType, String::from("uint_sub")).as_value(),
+    context.scope.set(&context, context.symbol("uint_sub").as_value(),
         context.gc.new_object(context.FunctionType, Function::new_rust(lambda_uint_sub)).as_value());
-    context.scope.set(&context, context.gc.new_object(context.StringType, String::from("uint_mul")).as_value(),
+    context.scope.set(&context, context.symbol("uint_mul").as_value(),
         context.gc.new_object(context.FunctionType, Function::new_rust(lambda_uint_mul)).as_value());
-    context.scope.set(&context, context.gc.new_object(context.StringType, String::from("uint_add")).as_value(),
+    context.scope.set(&context, context.symbol("uint_add").as_value(),
         context.gc.new_object(context.FunctionType, Function::new_rust(lambda_uint_add)).as_value());
-    context.scope.set(&context, context.gc.new_object(context.StringType, String::from("print")).as_value(),
+    context.scope.set(&context, context.symbol("print").as_value(),
         context.gc.new_object(context.FunctionType, Function::new_rust(lambda_print)).as_value());
 
-    let mut file = File::open("tests/test.ll").unwrap();
+    let mut file = File::open("tests/fac.ll").unwrap();
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
     let input = contents.chars().collect();

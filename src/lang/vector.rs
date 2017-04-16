@@ -1,11 +1,9 @@
+use collections::vec::Vec;
+
 use core::fmt;
-use core::hash::Hash;
+use core::hash::Hasher;
 
-use collection_traits::*;
-use hash_map::DefaultHasher;
-use vector;
-
-use ::{Context, Ptr};
+use ::{Context, Hash, Ptr};
 
 use super::object::Object;
 use super::value::Value;
@@ -251,7 +249,7 @@ impl<'a> Iterator for VectorIter<'a> {
 impl Hash for Vector {
 
     #[inline(always)]
-    fn hash(&self, state: &mut DefaultHasher) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         Hash::hash(&*self.root, state);
         Hash::hash(&*self.tail, state);
         Hash::hash(&*self.size, state);
@@ -387,7 +385,7 @@ impl Ptr<Object<Vector>> {
         let index = *index.value();
 
         if index < size {
-            let mut vector: vector::Vector<Ptr<Value>> = self.iter().collect();
+            let mut vector: Vec<Ptr<Value>> = self.iter().collect();
             vector.insert(index, value);
 
             let mut new_vector = Vector::new(context);

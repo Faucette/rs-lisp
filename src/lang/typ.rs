@@ -1,12 +1,10 @@
 use collections::string::String;
+use collections::vec::Vec;
 
 use core::{fmt, mem, ptr};
-use core::hash::Hash;
+use core::hash::Hasher;
 
-use hash_map::DefaultHasher;
-use vector::Vector;
-
-use ::{Context, Ptr};
+use ::{Context, Hash, Ptr};
 
 use super::function::Function;
 use super::object::Object;
@@ -23,8 +21,8 @@ pub struct Type {
 
     pub(crate) supr: Option<Ptr<Object<Type>>>,
 
-    pub(crate) fields: Option<Vector<String>>,
-    //pub(crate) types: Option<Vector<Ptr<Object<Type>>>>,
+    pub(crate) fields: Option<Vec<Ptr<Object<Keyword>>>>,
+    //pub(crate) types: Option<Vec<Ptr<Object<Type>>>>,
 
     pub(crate) constructor: Option<Ptr<Object<Function>>>,
 
@@ -87,7 +85,7 @@ impl Type {
 
                 TypeBuilder::new(name.as_str())
                     .size(mem::size_of::<Struct>())
-                    .fields(list.iter().map(|v| Struct::key_to_string(context, &v)).collect())
+                    .fields(list.iter().map(|v| Keyword::to_keyword(context, v)).collect())
                     .supr(supr).build()
 
             } else if fields_value.typ() == context.UIntType {
@@ -130,11 +128,19 @@ impl Type {
 impl Hash for Type {
 
     #[inline(always)]
-    fn hash(&self, state: &mut DefaultHasher) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         self.name.hash(state);
-        self.fields.hash(state);
+
+        match self.fields {
+            Some(ref fields) => {
+                for field in fields.iter() {
+                    Hash::hash(field.value(), state);
+                }
+            },
+            None => (),
+        }
         match self.constructor {
-            Some(constructor) => Hash::hash(&*constructor, state),
+            Some(ref constructor) => Hash::hash(&**constructor, state),
             None => (),
         }
         self.is_abstract.hash(state);
@@ -187,8 +193,8 @@ pub struct TypeBuilder {
 
     supr: Option<Ptr<Object<Type>>>,
 
-    fields: Option<Vector<String>>,
-    types: Option<Vector<Ptr<Object<Type>>>>,
+    fields: Option<Vec<Ptr<Object<Keyword>>>>,
+    types: Option<Vec<Ptr<Object<Type>>>>,
 
     constructor: Option<Ptr<Object<Function>>>,
 
@@ -224,12 +230,12 @@ impl TypeBuilder {
         self
     }
     #[inline]
-    pub fn fields(mut self, fields: Vector<String>) -> Self {
+    pub fn fields(mut self, fields: Vec<Ptr<Object<Keyword>>>) -> Self {
         self.fields = Some(fields);
         self
     }
     #[inline]
-    pub fn types(mut self, types: Vector<Ptr<Object<Type>>>) -> Self {
+    pub fn types(mut self, types: Vec<Ptr<Object<Type>>>) -> Self {
         self.types = Some(types);
         self
     }

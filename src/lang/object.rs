@@ -1,10 +1,10 @@
 use core::fmt;
-use core::hash::Hash;
+use core::hash::Hasher;
 use core::ops::{Deref, DerefMut};
 
 use hash_map::DefaultHasher;
 
-use ::Ptr;
+use ::{Hash, Ptr};
 use ::lang::{Value, Type};
 
 
@@ -36,7 +36,7 @@ impl<T> Object<T> {
     }
 }
 
-impl<T: 'static + fmt::Debug + PartialEq<T>> Ptr<Object<T>> {
+impl<T: 'static + fmt::Debug + Hash + PartialEq<T>> Ptr<Object<T>> {
 
     #[inline(always)]
     pub fn as_value(&self) -> Ptr<Value> {
@@ -46,7 +46,7 @@ impl<T: 'static + fmt::Debug + PartialEq<T>> Ptr<Object<T>> {
     }
 }
 
-impl<T: 'static + fmt::Debug + PartialEq<T>> Value for Object<T> {
+impl<T: 'static + fmt::Debug + Hash + PartialEq<T>> Value for Object<T> {
 
     #[inline(always)]
     fn typ(&self) -> Ptr<Object<Type>> {
@@ -58,6 +58,10 @@ impl<T: 'static + fmt::Debug + PartialEq<T>> Value for Object<T> {
             Some(other) => self.eq(&*other),
             None => false,
         }
+    }
+    #[inline(always)]
+    fn hash(&self, state: &mut DefaultHasher) {
+        self.value.hash(state);
     }
 }
 
@@ -103,7 +107,7 @@ impl<T: Eq> Eq for Object<T> {}
 impl<T: Hash> Hash for Object<T> {
 
     #[inline(always)]
-    fn hash(&self, state: &mut DefaultHasher) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         self.value.hash(state);
     }
 }

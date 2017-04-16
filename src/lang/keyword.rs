@@ -1,17 +1,16 @@
-use collections::string::String;
+use collections::string::{ToString, String};
 
 use core::fmt;
-use core::hash::Hash;
+use core::hash::Hasher;
 use core::ops::{Deref, DerefMut};
 
-use hash_map::DefaultHasher;
-
-use ::{Context, Ptr};
+use ::{Context, Hash, Ptr};
 
 use super::value::Value;
 use super::object::Object;
 use super::list::List;
 use super::scope::Scope;
+use super::symbol::Symbol;
 
 
 pub struct Keyword {
@@ -42,12 +41,30 @@ impl Keyword {
 
         context.gc.new_object(context.KeywordType, Self::new(name)).as_value()
     }
+
+    #[inline]
+    pub fn to_keyword(context: &Context, value: Ptr<Value>) -> Ptr<Object<Keyword>> {
+        if value.typ() == context.KeywordType {
+            value.downcast::<Object<Keyword>>().unwrap()
+        } else if value.typ() == context.SymbolType {
+            let symbol = value.downcast::<Object<Symbol>>().unwrap();
+            let string = (*symbol.value()).clone();
+            context.gc.new_object(context.KeywordType, Self::new(string))
+        } else if value.typ() == context.StringType {
+            let string = value.downcast::<Object<String>>().unwrap();
+            let string = (*string.value()).clone();
+            context.gc.new_object(context.KeywordType, Self::new(string))
+        } else {
+            let string = value.to_string();
+            context.gc.new_object(context.KeywordType, Self::new(string))
+        }
+    }
 }
 
 impl Hash for Keyword {
 
     #[inline(always)]
-    fn hash(&self, state: &mut DefaultHasher) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         Hash::hash(&self.value, state);
     }
 }

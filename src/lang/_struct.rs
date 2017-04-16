@@ -1,24 +1,17 @@
-use collections::string::{String, ToString};
-
 use core::fmt;
-use core::hash::Hash;
+use core::hash::Hasher;
 
-use collection_traits::*;
-use hash_map::{HashMap, DefaultHasher};
-
-use ::{Context, Ptr};
+use ::{Context, Hash, Ptr};
 
 use super::object::Object;
 use super::typ::Type;
 use super::value::Value;
-use super::keyword::Keyword;
-use super::scope::Scope;
-use super::symbol::Symbol;
 use super::list::List;
+use super::hash_map::HashMap;
 
 
 pub struct Struct {
-    map: HashMap<String, Ptr<Value>>,
+    map: Ptr<Object<HashMap>>,
 }
 
 impl Struct {
@@ -29,12 +22,12 @@ impl Struct {
         let mut map = HashMap::with_capacity(fields.len());
 
         for field in fields.iter() {
-            map.insert(field.clone(), args.first(context));
+            map.set_mut(field.as_value(), args.first(context));
             args = args.pop(context);
         }
 
         Struct {
-            map: map
+            map: context.gc.new_object(context.HashMapType, map),
         }
     }
 
@@ -42,70 +35,20 @@ impl Struct {
     pub(crate) fn constructor(context: &Context, typ: Ptr<Object<Type>>, args: Ptr<Object<List>>) -> Ptr<Value> {
         context.gc.new_object(typ, Self::new(context, typ, args)).as_value()
     }
-
-    #[inline(always)]
-    pub fn has(&self, key: &str) -> bool {
-        self.map.contains_key(key)
-    }
-
-    #[inline(always)]
-    pub fn set(&mut self, key: &str, value: Ptr<Value>) {
-        if self.map.contains_key(key) {
-            self.map.insert(key.into(), value);
-        }
-    }
-
-    #[inline(always)]
-    pub fn get(&self, key: &str) -> Option<&Ptr<Value>> {
-        self.map.get(key)
-    }
-
-    #[inline]
-    pub fn key_to_string<'a>(context: &Context, key: &Ptr<Value>) -> String {
-        if key.typ() == context.SymbolType {
-            let symbol = key.downcast::<Object<Symbol>>().unwrap();
-            (*symbol.value()).clone()
-        } else if key.typ() == context.KeywordType {
-            let keyword = key.downcast::<Object<Keyword>>().unwrap();
-            (*keyword.value()).clone()
-        } else if key.typ() == context.StringType {
-            let string = key.downcast::<Object<String>>().unwrap();
-            string.value().clone()
-        } else {
-            key.to_string()
-        }
-    }
-
-    #[inline]
-    pub fn access(context: &Context, _scope: Ptr<Object<Scope>>, mut args: Ptr<Object<List>>) -> Ptr<Value> {
-        let value = args.first(context);
-
-        match value.downcast::<Object<Struct>>() {
-            Some(mut struc) => {
-                let size = *args.size().value();
-                args = args.pop(context);
-
-                let key = args.first(context);
-
-                if size < 3 {
-                    struc.get(context, key)
-                } else {
-                    args = args.pop(context);
-                    let new_value = args.first(context);
-                    struc.set(context, key, new_value);
-                    value
-                }
-            },
-            None => value, // TODO throw error?
-        }
-    }
 }
 
 impl Ptr<Object<Struct>> {
 
+    #[inline]
+    fn from_hash_map(context: &Context, typ: Ptr<Object<Type>>, map: Ptr<Object<HashMap>>) -> Self {
+        context.gc.new_object(typ, Struct {
+            map: map,
+        })
+    }
+
     #[inline(always)]
     pub fn has(&self, context: &Context, key: Ptr<Value>) -> Ptr<Object<bool>> {
-        if self.map.contains_key(&Struct::key_to_string(context, &key)) {
+        if self.map.contains_key(key) {
             context.true_value
         } else {
             context.false_value
@@ -113,27 +56,28 @@ impl Ptr<Object<Struct>> {
     }
 
     #[inline]
-    pub fn set(&mut self, context: &Context, key: Ptr<Value>, value: Ptr<Value>) {
-        let k = Struct::key_to_string(context, &key);
-
-        if self.map.contains_key(&k) {
-            self.map.insert(k, value);
+    pub fn set(&mut self, context: &Context, key: Ptr<Value>, value: Ptr<Value>) -> Self {
+        if self.map.contains_key(key) {
+            Self::from_hash_map(
+                context,
+                self.typ(),
+                self.map.set(context, key, value),
+            )
+        } else {
+            *self
         }
     }
 
     #[inline]
     pub fn get(&self, context: &Context, key: Ptr<Value>) -> Ptr<Value> {
-        match self.map.get(&Struct::key_to_string(context, &key)) {
-            Some(value) => *value,
-            None => context.nil_value.as_value(),
-        }
+        self.map.get(context, key)
     }
 }
 
 impl Hash for Struct {
 
     #[inline(always)]
-    fn hash(&self, state: &mut DefaultHasher) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         for (k, v) in self.map.iter() {
             Hash::hash(k, state);
             Hash::hash(v, state);
@@ -145,10 +89,10 @@ impl PartialEq for Struct {
 
     #[inline(always)]
     fn eq(&self, other: &Self) -> bool {
-        if self.map.len() == other.map.len() {
+        if self.map.size() == other.map.size() {
             for (ak, av) in self.map.iter() {
-                match other.map.get(ak) {
-                    Some(bv) => if av.equals(*bv) {
+                match (&**other.map).get(*ak) {
+                    Some(bv) => if av.equals(bv) {
                         return false;
                     },
                     None => {

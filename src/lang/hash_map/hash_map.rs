@@ -1,10 +1,10 @@
 use core::fmt;
-use core::hash::{Hash, Hasher};
+use core::hash::Hasher;
 
 use hash_map;
 use collection_traits::*;
 
-use ::{Context, Ptr};
+use ::{Context, Hash, Ptr};
 use ::lang::{Object, Value, List, Scope};
 
 
@@ -19,6 +19,13 @@ impl HashMap {
     pub fn new() -> Self {
         HashMap {
             map: hash_map::HashMap::new(),
+        }
+    }
+
+    #[inline(always)]
+    pub(crate) fn with_capacity(size: usize) -> Self {
+        HashMap {
+            map: hash_map::HashMap::with_capacity(size),
         }
     }
 
@@ -42,6 +49,11 @@ impl HashMap {
     }
 
     #[inline]
+    pub fn size(&self) -> usize {
+        self.map.len()
+    }
+
+    #[inline]
     pub fn contains_key(&self, key: Ptr<Value>) -> bool {
         self.map.contains_key(&key)
     }
@@ -56,8 +68,7 @@ impl HashMap {
 
     #[inline]
     pub fn set_mut(&mut self, key: Ptr<Value>, value: Ptr<Value>) {
-        let hash = key;
-        self.map.insert(hash, value);
+        self.map.insert(key, value);
     }
 
     #[inline(always)]

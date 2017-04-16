@@ -1,5 +1,4 @@
-use collection_traits::*;
-use linked_list::LinkedList;
+use collections::linked_list::LinkedList;
 
 use ::{Context, Ptr};
 use ::lang::{Value, Object, List, Function, Symbol, Struct, Scope, Type};

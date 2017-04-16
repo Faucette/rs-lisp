@@ -1,12 +1,10 @@
 use collections::string::String;
 
 use core::{fmt, hash};
-use core::hash::Hash;
+use core::hash::Hasher;
 use core::ops::{Deref, DerefMut};
 
-use hash_map::DefaultHasher;
-
-use ::{Context, Ptr};
+use ::{Context, Hash, Ptr};
 
 use super::value::Value;
 use super::object::Object;
@@ -48,7 +46,7 @@ impl Symbol {
 impl Hash for Symbol {
 
     #[inline(always)]
-    fn hash(&self, state: &mut DefaultHasher) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         hash::Hash::hash(&self.value, state);
     }
 }

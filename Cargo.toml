@@ -12,8 +12,6 @@ homepage = "https://github.com/nathanfaucett/rs-lambda"
 
 [dependencies]
 collection_traits = {git = "https://github.com/nathanfaucett/rs-collection_traits.git"}
-linked_list = {git = "https://github.com/nathanfaucett/rs-linked_list.git"}
 hash_map = {git = "https://github.com/nathanfaucett/rs-hash_map.git"}
-vector = {git = "https://github.com/nathanfaucett/rs-vector.git"}
 
 [dev-dependencies]

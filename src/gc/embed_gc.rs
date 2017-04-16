@@ -1,13 +1,11 @@
 use alloc::boxed::Box;
 use alloc::heap;
 
+use collections::linked_list::LinkedList;
+
 use core::{fmt, mem};
-use core::hash::Hash;
 
-use collection_traits::*;
-use linked_list::LinkedList;
-
-use ::Ptr;
+use ::{Hash, Ptr};
 use ::lang::{Object, Type, Value};
 
 

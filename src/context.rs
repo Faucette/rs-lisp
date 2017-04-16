@@ -313,6 +313,19 @@ impl Context {
             gc: gc,
         }
     }
+
+    #[inline(always)]
+    pub fn string(&self, name: &str) -> Ptr<Object<String>> {
+        self.gc.new_object(self.StringType, String::from(name))
+    }
+    #[inline(always)]
+    pub fn symbol(&self, name: &str) -> Ptr<Object<Symbol>> {
+        self.gc.new_object(self.SymbolType, Symbol::new(String::from(name)))
+    }
+    #[inline(always)]
+    pub fn keyword(&self, name: &str) -> Ptr<Object<Keyword>> {
+        self.gc.new_object(self.KeywordType, Keyword::new(String::from(name)))
+    }
 }
 
 #[allow(non_snake_case)]

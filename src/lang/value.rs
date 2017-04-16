@@ -1,17 +1,17 @@
 use core::{fmt, mem};
-use core::hash::{Hash, Hasher};
+use core::hash::{self, Hasher};
 use core::any::{Any, TypeId};
 
 use hash_map::DefaultHasher;
 
-use ::Ptr;
+use ::{Hash, Ptr};
 use ::lang::{Object, Type};
 
 
 pub trait Value: Any + fmt::Debug {
     fn typ(&self) -> Ptr<Object<Type>>;
-    fn equals(&self, other: Ptr<Value>) -> bool;
-    fn hash(&self, h: &mut DefaultHasher);
+    fn equals(&self, Ptr<Value>) -> bool;
+    fn hash(&self, &mut DefaultHasher);
 }
 
 impl Ptr<Value> {
@@ -38,11 +38,21 @@ impl Ptr<Value> {
     }
 }
 
+
 impl Hash for Ptr<Value> {
 
     #[inline(always)]
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.hash(state);
+        Value::hash(&**self, unsafe {
+            mem::transmute::<_, &mut DefaultHasher>(state)
+        });
+    }
+}
+impl hash::Hash for Ptr<Value> {
+
+    #[inline(always)]
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        Hash::hash(self, state);
     }
 }
 

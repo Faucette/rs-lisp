@@ -1,9 +1,7 @@
 use core::fmt;
-use core::hash::Hash;
+use core::hash::Hasher;
 
-use hash_map::DefaultHasher;
-
-use ::{Context, Ptr};
+use ::{Context, Hash, Ptr};
 
 use super::value::Value;
 use super::object::Object;
@@ -32,7 +30,7 @@ impl Node {
 impl Hash for Node {
 
     #[inline(always)]
-    fn hash(&self, state: &mut DefaultHasher) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         match self.next {
             Some(next) => Hash::hash(&*next, state),
             None => (),
@@ -248,7 +246,7 @@ impl Iterator for ListIter {
 impl Hash for List {
 
     #[inline(always)]
-    fn hash(&self, state: &mut DefaultHasher) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         match self.root {
             Some(root) => Hash::hash(&*root, state),
             None => (),

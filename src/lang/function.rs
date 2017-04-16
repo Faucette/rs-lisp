@@ -1,9 +1,7 @@
 use core::{fmt, ptr};
-use core::hash::Hash;
+use core::hash::Hasher;
 
-use hash_map::DefaultHasher;
-
-use ::{Context, Ptr};
+use ::{Context, Hash, Ptr};
 
 use super::object::Object;
 use super::value::Value;
@@ -121,7 +119,7 @@ impl Ptr<Object<Function>> {
 impl Hash for Function {
 
     #[inline(always)]
-    fn hash(&self, state: &mut DefaultHasher) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         ((&self) as *const _ as usize).hash(state);
     }
 }

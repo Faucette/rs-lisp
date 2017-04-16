@@ -12,7 +12,7 @@
   (List `def name (List `type name super value)))
 
 (defn add (a, b)
-  (add_uint64 a, b))
+  (uint_add a, b))
 
 (def result (uint_add 1, 1))
 

@@ -1,10 +1,8 @@
 use core::sync::atomic::{AtomicPtr, Ordering};
 use core::{fmt, ptr};
-use core::hash::Hash;
+use core::hash::Hasher;
 
-use hash_map::DefaultHasher;
-
-use ::{Context, Ptr};
+use ::{Context, Hash, Ptr};
 
 use super::object::Object;
 use super::value::Value;
@@ -131,7 +129,7 @@ impl Scope {
 impl Hash for Scope {
 
     #[inline]
-    fn hash(&self, state: &mut DefaultHasher) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         match self.name {
             Some(name) => Hash::hash(&*name, state),
             None => (),

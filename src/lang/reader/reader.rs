@@ -1,13 +1,10 @@
 use collections::string::String;
+use collections::vec::Vec;
 
 use core::fmt;
-use core::hash::{Hash, Hasher};
+use core::hash::Hasher;
 
-use collection_traits::*;
-use vector::Vector;
-use hash_map::DefaultHasher;
-
-use ::{Context, Ptr};
+use ::{Context, Hash, Ptr};
 use ::lang::{Value, Object, Function, Scope, List};
 
 use super::comment_reader::comment_reader;
@@ -22,8 +19,8 @@ use super::whitespace_reader::whitespace_reader;
 
 
 pub struct Reader {
-    readers: Vector<Ptr<Object<Function>>>,
-    input: Vector<char>,
+    readers: Vec<Ptr<Object<Function>>>,
+    input: Vec<char>,
     index: usize,
     row: u64,
     col: u64,
@@ -35,8 +32,8 @@ unsafe impl Sync for Reader {}
 impl Reader {
 
     #[inline]
-    pub fn new(context: &Context, input: Vector<char>) -> Self {
-        let mut readers = Vector::new();
+    pub fn new(context: &Context, input: Vec<char>) -> Self {
+        let mut readers = Vec::new();
 
         readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(whitespace_reader)));
         readers.push(context.gc.new_object(context.FunctionType, Function::new_rust(comment_reader)));
