@@ -1,12 +1,16 @@
 use collections::string::String;
 
 use core::mem;
+use core::sync::atomic::{AtomicPtr, Ordering};
 
 use ::{Ptr, Gc};
 use ::lang::{
     Value, Object, TypeBuilder,
     Scope, Keyword, Symbol, List, Vector, HashMap, Function, Nil, Reader, Type
 };
+
+
+pub static DEFAULT_SCOPE: &'static str = "user";
 
 
 #[allow(non_snake_case)]
@@ -58,7 +62,7 @@ pub struct Context {
     pub false_value: Ptr<Object<bool>>,
     pub nil_value: Ptr<Object<Nil>>,
 
-    pub namespaces: Ptr<Object<HashMap>>,
+    namespaces: AtomicPtr<Object<HashMap>>,
     pub scope: Ptr<Object<Scope>>,
     pub gc: Gc,
 }
@@ -203,16 +207,20 @@ impl Context {
         let false_value = gc.new_object(BooleanType, false);
         let nil_value = gc.new_object(NilType, Nil::new());
 
-        let mut namespaces = gc.new_object(HashMapType, HashMap::new());
+        let mut raw_namespsaces = gc.new_object(HashMapType, HashMap::new());
 
         let mut scope = gc.new_object(ScopeType,
             Scope::from_mappings(
-                Some(gc.new_object(SymbolType, Symbol::new("user".into()))),
+                Some(gc.new_object(SymbolType, Symbol::new(DEFAULT_SCOPE.into()))),
                 None,
                 gc.new_object(HashMapType, HashMap::new())
             ));
 
-        namespaces.set_mut(scope.name.unwrap().as_value(), scope.as_value());
+        raw_namespsaces.set_mut(scope.name.unwrap().as_value(), scope.as_value());
+
+        let namespaces = unsafe {
+            AtomicPtr::new(raw_namespsaces.as_ptr())
+        };
 
         scope.set_mut(gc.new_object(SymbolType, Symbol::new("Type".into())).as_value(), TypeType.as_value());
         scope.set_mut(gc.new_object(SymbolType, Symbol::new("Any".into())).as_value(), AnyType.as_value());
@@ -325,6 +333,40 @@ impl Context {
     #[inline(always)]
     pub fn keyword(&self, name: &str) -> Ptr<Object<Keyword>> {
         self.gc.new_object(self.KeywordType, Keyword::new(String::from(name)))
+    }
+
+    #[inline(always)]
+    fn namespaces_ptr(&self) -> Ptr<Object<HashMap>> {
+        unsafe {
+            Ptr::from_ptr(self.namespaces.load(Ordering::Relaxed))
+        }
+    }
+    #[inline(always)]
+    fn namespaces_swap(&self, hash_map: Ptr<Object<HashMap>>) {
+        self.namespaces.store(unsafe {hash_map.as_ptr()}, Ordering::Relaxed);
+    }
+
+    #[inline(always)]
+    pub fn namespace(&self, parent: Option<Ptr<Object<Scope>>>, name: Ptr<Object<Symbol>>) -> Ptr<Object<Scope>> {
+        let hash_map = self.namespaces_ptr();
+        let name_value = name.as_value();
+
+        match (&**hash_map).get(name_value) {
+            Some(scope) => scope.downcast::<Object<Scope>>().unwrap(),
+            None => {
+                let scope = self.gc.new_object(self.ScopeType,
+                    Scope::from_mappings(
+                        Some(name),
+                        parent,
+                        self.gc.new_object(self.HashMapType, HashMap::new())
+                    ));
+
+                let new_hash_map = self.namespaces_ptr().set(self, name_value, scope.as_value());
+                self.namespaces_swap(new_hash_map);
+
+                scope
+            }
+        }
     }
 }
 

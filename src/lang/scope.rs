@@ -67,9 +67,8 @@ impl Scope {
             Ptr::from_ptr(self.mappings.load(Ordering::Relaxed))
         }
     }
-
     #[inline(always)]
-    fn store(&self, hash_map: Ptr<Object<HashMap>>) {
+    fn mappings_swap(&self, hash_map: Ptr<Object<HashMap>>) {
         self.mappings.store(unsafe {hash_map.as_ptr()}, Ordering::Relaxed);
     }
 
@@ -110,9 +109,9 @@ impl Scope {
     #[inline]
     pub fn set(&self, context: &Context, symbol: Ptr<Value>, value: Ptr<Value>) {
         if let Some(ref mut scope) = self.get_defined_scope_mut(symbol) {
-            scope.store(scope.mappings_ptr().set(context, symbol, value));
+            scope.mappings_swap(scope.mappings_ptr().set(context, symbol, value));
         } else {
-            self.store(self.mappings_ptr().set(context, symbol, value));
+            self.mappings_swap(self.mappings_ptr().set(context, symbol, value));
         }
     }
 

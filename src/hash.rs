@@ -78,7 +78,7 @@ impl Hash for f32 {
     #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         hash::Hash::hash(unsafe {
-            &mem::transmute::<f32, u32>(*self)
+            mem::transmute::<&f32, &u32>(self)
         }, state);
     }
 }
@@ -86,7 +86,7 @@ impl Hash for f64 {
     #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         hash::Hash::hash(unsafe {
-            &mem::transmute::<f64, u64>(*self)
+            mem::transmute::<&f64, &u64>(self)
         }, state);
     }
 }

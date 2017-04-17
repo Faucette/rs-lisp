@@ -7,11 +7,14 @@ use ::lang::{Value, Object, List, Function, Symbol, Struct, Scope, Type};
 #[derive(Debug)]
 pub enum State {
     Eval,
+
     EvalList,
     EvalArguments,
     EvalFunction,
     EvalMacro,
+
     PopScope,
+
     Def,
     Do,
     Fn,
@@ -59,6 +62,40 @@ pub fn eval(context: &Context, scope: Ptr<Object<Scope>>, value: Ptr<Value>) -> 
                                 list = list.pop(context);
 
                                 match (&**symbol).as_ref() {
+                                    "eval" => {
+                                        stack.push_front(list.first(context));
+                                        state_stack.push_front(State::Eval);
+                                        state_stack.push_front(State::Eval);
+                                    },
+                                    "namespace" => {
+                                        let name = list.first(context);
+                                        list = list.pop(context);
+
+                                        let first = list.first(context);
+                                        list = list.pop(context);
+
+                                        match name.downcast::<Object<Symbol>>() {
+                                            Some(symbol) => {
+                                                let scope = context.namespace(
+                                                    Some(*scope_stack.front().unwrap()),
+                                                    symbol
+                                                );
+                                                scope_stack.push_front(scope);
+
+                                                stack.push_front(list.as_value());
+                                                stack.push_front(first);
+
+                                                state_stack.push_front(State::PopScope);
+                                                state_stack.push_front(State::Do);
+                                                state_stack.push_front(State::Eval);
+                                            },
+                                            None => {
+                                                state_stack.push_front(State::Throw);
+                                                stack.push_front(context.gc.new_object(context.StringType,
+                                                    format!("invalid argument in namespace expected symbol found {:?}", name)).as_value());
+                                            }
+                                        }
+                                    },
                                     "def" => {
                                         let symbol = list.first(context);
                                         list = list.pop(context);
@@ -421,7 +458,7 @@ pub fn eval(context: &Context, scope: Ptr<Object<Scope>>, value: Ptr<Value>) -> 
                     stack.push_front(mac);
                 },
                 State::Quote => {
-                    // TODO: remove state?
+                    // TODO: remove this state?
                 },
                 State::Type => {
                     let supr = stack.pop_front().unwrap();

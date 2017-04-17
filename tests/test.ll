@@ -38,3 +38,13 @@
 
 (let (a 10 b 20)
   (print a, b))
+
+(def expr `(uint_add 1, 1))
+(eval expr)
+
+
+(namespace bob
+  (def x 10)
+  x)
+
+x ; should be nil
