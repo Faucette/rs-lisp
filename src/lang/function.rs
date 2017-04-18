@@ -1,7 +1,7 @@
 use core::{fmt, ptr};
-use core::hash::Hasher;
+use core::hash::{Hash, Hasher};
 
-use ::{Context, Hash, Ptr};
+use ::{Context, Ptr};
 
 use super::object::Object;
 use super::value::Value;
@@ -13,7 +13,6 @@ use super::keyword::Keyword;
 
 
 pub enum Function {
-    Constructor(Ptr<Object<Type>>),
     Rust(fn(&Context, Ptr<Object<Scope>>, Ptr<Object<List>>) -> Ptr<Value>),
     Internal(Ptr<Object<Scope>>, Option<Ptr<Object<Symbol>>>, Ptr<Object<List>>, Ptr<Value>),
 }
@@ -23,11 +22,6 @@ impl Function {
     #[inline(always)]
     pub fn new_rust(fn_ptr: fn(&Context, Ptr<Object<Scope>>, Ptr<Object<List>>) -> Ptr<Value>) -> Self {
         Function::Rust(fn_ptr)
-    }
-
-    #[inline(always)]
-    pub fn new_constructor(typ: Ptr<Object<Type>>) -> Self {
-        Function::Constructor(typ)
     }
 
     #[inline(always)]
@@ -139,7 +133,6 @@ impl fmt::Display for Function {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Function::Constructor(_) => write!(f, ":constructor"),
             &Function::Rust(_) => write!(f, ":native"),
             &Function::Internal(_, name, args, body) => {
                 if let Some(n) = name {

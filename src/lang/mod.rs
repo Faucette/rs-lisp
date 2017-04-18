@@ -1,10 +1,9 @@
 mod hash_map;
 mod reader;
-mod _struct;
+mod number;
 mod function;
 mod keyword;
 mod list;
-mod multi_function;
 mod nil;
 mod object;
 mod scope;
@@ -16,11 +15,10 @@ mod vector;
 
 pub use self::hash_map::HashMap;
 pub use self::reader::Reader;
-pub use self::_struct::Struct;
+pub use self::number::Number;
 pub use self::function::Function;
 pub use self::keyword::Keyword;
 pub use self::list::List;
-pub use self::multi_function::MultiFunction;
 pub use self::nil::Nil;
 pub use self::object::Object;
 pub use self::scope::Scope;

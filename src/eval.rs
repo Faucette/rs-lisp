@@ -1,7 +1,7 @@
 use collections::linked_list::LinkedList;
 
 use ::{Context, Ptr};
-use ::lang::{Value, Object, List, Function, Symbol, Struct, Scope, Type};
+use ::lang::{Value, Object, List, Function, Symbol, Scope, Type};
 
 
 #[derive(Debug)]
@@ -22,7 +22,6 @@ pub enum State {
     Let,
     Macro,
     Quote,
-    Type,
     Throw,
 }
 
@@ -189,18 +188,6 @@ pub fn eval(context: &Context, scope: Ptr<Object<Scope>>, value: Ptr<Value>) -> 
                                         stack.push_front(list.first(context));
                                         state_stack.push_front(State::Quote);
                                     },
-                                    "type" => {
-                                        let name = list.first(context);
-                                        list = list.pop(context);
-
-                                        let fields = list.first(context);
-                                        //list = list.pop(context);
-
-                                        stack.push_front(fields);
-                                        stack.push_front(name);
-
-                                        state_stack.push_front(State::Type);
-                                    },
                                     "throw" => {
                                         stack.push_front(list.as_value());
                                         state_stack.push_front(State::Throw);
@@ -248,33 +235,27 @@ pub fn eval(context: &Context, scope: Ptr<Object<Scope>>, value: Ptr<Value>) -> 
                     } else if callable_typ == context.TypeType {
                         let typ = callable.downcast::<Object<Type>>().unwrap();
 
-                        if typ.is_bits() {
-                            stack.push_front(context.gc.new_object(context.StringType,
-                                format!("creating bit types from front end not supported yet")).as_value());
-                            state_stack.push_front(State::Throw);
-                        } else {
-                            match typ.constructor {
-                                Some(constructor) => {
-                                    let mut args = args.downcast::<Object<List>>().unwrap();
-                                    let first = args.first(context);
-                                    args = args.pop(context);
+                        match typ.constructor {
+                            Some(constructor) => {
+                                let mut args = args.downcast::<Object<List>>().unwrap();
+                                let first = args.first(context);
+                                args = args.pop(context);
 
-                                    let eval_args = context.gc.new_object(context.ListType, List::new(context));
+                                let eval_args = context.gc.new_object(context.ListType, List::new(context));
 
-                                    stack.push_front(constructor.as_value());
-                                    stack.push_front(eval_args.as_value());
-                                    stack.push_front(args.as_value());
-                                    stack.push_front(first);
-                                    state_stack.push_front(State::EvalFunction);
-                                    state_stack.push_front(State::EvalArguments);
-                                    state_stack.push_front(State::Eval);
-                                },
-                                None => {
-                                    stack.push_front(context.gc.new_object(context.StringType,
-                                        format!("invalid type no constructor for {:?}", callable)).as_value());
-                                    state_stack.push_front(State::Throw);
-                                },
-                            }
+                                stack.push_front(constructor.as_value());
+                                stack.push_front(eval_args.as_value());
+                                stack.push_front(args.as_value());
+                                stack.push_front(first);
+                                state_stack.push_front(State::EvalFunction);
+                                state_stack.push_front(State::EvalArguments);
+                                state_stack.push_front(State::Eval);
+                            },
+                            None => {
+                                stack.push_front(context.gc.new_object(context.StringType,
+                                    format!("invalid type no constructor for {:?}", callable)).as_value());
+                                state_stack.push_front(State::Throw);
+                            },
                         }
                     } else if callable_typ == context.MacroType {
                         let args = args.downcast::<Object<List>>().unwrap();
@@ -320,10 +301,6 @@ pub fn eval(context: &Context, scope: Ptr<Object<Scope>>, value: Ptr<Value>) -> 
                             state_stack.push_front(State::PopScope);
                             state_stack.push_front(State::Eval);
                         },
-                        &Function::Constructor(typ) => {
-                            stack.push_front(Struct::constructor(context, typ, args));
-                            state_stack.push_front(State::Eval);
-                        },
                         &Function::Rust(ref fn_ptr) => {
                             stack.push_front((fn_ptr)(context, scope, args));
                             state_stack.push_front(State::Eval);
@@ -342,9 +319,6 @@ pub fn eval(context: &Context, scope: Ptr<Object<Scope>>, value: Ptr<Value>) -> 
                             stack.push_front(body);
                             state_stack.push_front(State::PopScope);
                             state_stack.push_front(State::Eval);
-                        },
-                        &Function::Constructor(typ) => {
-                            stack.push_front(Struct::constructor(context, typ, args));
                         },
                         &Function::Rust(ref fn_ptr) => {
                             stack.push_front((fn_ptr)(context, scope, args));
@@ -450,13 +424,6 @@ pub fn eval(context: &Context, scope: Ptr<Object<Scope>>, value: Ptr<Value>) -> 
                 },
                 State::Quote => {
                     // TODO: remove this state?
-                },
-                State::Type => {
-                    let name = stack.pop_front().unwrap();
-                    let fields = stack.pop_front().unwrap();
-
-                    let typ = Type::new(context, name, fields);
-                    stack.push_front(typ.as_value());
                 },
                 State::Throw => {
                     panic!("throw {:?}", stack.pop_front().unwrap());

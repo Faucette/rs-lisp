@@ -1,10 +1,10 @@
 use core::{fmt, mem};
-use core::hash::{self, Hasher};
+use core::hash::{Hash, Hasher};
 use core::any::{Any, TypeId};
 
 use hash_map::DefaultHasher;
 
-use ::{Hash, Ptr};
+use ::Ptr;
 use ::lang::{Object, Type};
 
 
@@ -46,13 +46,6 @@ impl Hash for Ptr<Value> {
         Value::hash(&**self, unsafe {
             mem::transmute::<_, &mut DefaultHasher>(state)
         });
-    }
-}
-impl hash::Hash for Ptr<Value> {
-
-    #[inline(always)]
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        Hash::hash(self, state);
     }
 }
 

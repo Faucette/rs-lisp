@@ -1,10 +1,10 @@
 use core::fmt;
-use core::hash::Hasher;
+use core::hash::{Hash, Hasher};
 
 use hash_map;
 use collection_traits::*;
 
-use ::{Context, Hash, Ptr};
+use ::{Context, Ptr};
 use ::lang::{Object, Value, List, Scope};
 
 
@@ -19,13 +19,6 @@ impl HashMap {
     pub fn new() -> Self {
         HashMap {
             map: hash_map::HashMap::new(),
-        }
-    }
-
-    #[inline(always)]
-    pub(crate) fn with_capacity(size: usize) -> Self {
-        HashMap {
-            map: hash_map::HashMap::with_capacity(size),
         }
     }
 

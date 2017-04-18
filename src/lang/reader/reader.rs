@@ -2,9 +2,9 @@ use collections::string::String;
 use collections::vec::Vec;
 
 use core::fmt;
-use core::hash::Hasher;
+use core::hash::{Hash, Hasher};
 
-use ::{Context, Hash, Ptr};
+use ::{Context, Ptr};
 use ::lang::{Value, Object, Function, Scope, List};
 
 use super::comment_reader::comment_reader;

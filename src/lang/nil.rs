@@ -1,7 +1,6 @@
 use core::fmt;
-use core::hash::{self, Hasher};
 
-use ::{Context, Hash, Ptr};
+use ::{Context, Ptr};
 
 use super::value::Value;
 use super::object::Object;
@@ -20,14 +19,6 @@ impl Nil {
     #[inline]
     pub fn constructor(context: &Context, _scope: Ptr<Object<Scope>>, _args: Ptr<Object<List>>) -> Ptr<Value> {
         context.nil_value.as_value()
-    }
-}
-
-impl Hash for Nil {
-
-    #[inline(always)]
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        hash::Hash::hash(self, state);
     }
 }
 

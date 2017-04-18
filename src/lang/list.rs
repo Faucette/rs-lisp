@@ -1,11 +1,12 @@
 use core::fmt;
-use core::hash::Hasher;
+use core::hash::{Hash, Hasher};
 
-use ::{Context, Hash, Ptr};
+use ::{Context, Ptr};
 
 use super::value::Value;
 use super::object::Object;
 use super::scope::Scope;
+use super::number::Number;
 
 
 struct Node {
@@ -70,7 +71,7 @@ impl fmt::Debug for Node {
 pub struct List {
     root: Option<Ptr<Object<Node>>>,
     tail: Option<Ptr<Object<Node>>>,
-    size: Ptr<Object<usize>>,
+    size: Ptr<Object<Number>>,
 }
 
 unsafe impl Send for List {}
@@ -83,7 +84,7 @@ impl List {
         List {
             root: None,
             tail: None,
-            size: context.gc.new_object(context.UIntType, 0usize),
+            size: context.gc.new_object(context.NumberType, Number::from(0usize)),
         }
     }
 
@@ -94,7 +95,8 @@ impl List {
 
     #[inline(always)]
     pub fn size(&self) -> usize {
-        *self.size.value()
+        let number: Number = *self.size.value();
+        number.into()
     }
     /*
     #[inline]
@@ -126,13 +128,13 @@ impl List {
 impl Ptr<Object<List>> {
 
     #[inline(always)]
-    pub fn size(&self) -> Ptr<Object<usize>> {
+    pub fn size(&self) -> Ptr<Object<Number>> {
         self.size
     }
 
     #[inline(always)]
     pub fn is_empty(&self, context: &Context) -> Ptr<Object<bool>> {
-        if self.size.value() == &0 {
+        if (&**self).size() == 0usize {
             context.true_value
         } else {
             context.false_value
@@ -140,7 +142,7 @@ impl Ptr<Object<List>> {
     }
     /*
     #[inline(always)]
-    fn nth(&self, context: &Context, index: Ptr<Object<usize>>) -> Ptr<Value> {
+    fn nth(&self, context: &Context, index: Ptr<Object<Number>>) -> Ptr<Value> {
         match self.find_node(*index.value()) {
             Some(ref node) => node.data,
             None => context.nil_value.as_value(),
@@ -160,7 +162,7 @@ impl Ptr<Object<List>> {
         }
 
         new_list.root = new_node;
-        new_list.size = context.gc.new_object(context.UIntType, (**self.size) + 1);
+        new_list.size = context.gc.new_object(context.NumberType, Number::from((&**self).size() + 1usize));
 
         new_list
     }
@@ -176,7 +178,7 @@ impl Ptr<Object<List>> {
         }
 
         self.tail = new_node;
-        **self.size += 1;
+        ***self.size = ((***self.size as usize) + 1usize) as f64;
 
         self
     }
@@ -184,12 +186,12 @@ impl Ptr<Object<List>> {
     #[inline]
     pub fn pop(&self, context: &Context) -> Self {
         let mut new_list = context.gc.new_object(context.ListType, List::new(context));
-        let size = **self.size;
+        let size = (***self.size) as usize;
 
-        if size > 1 {
+        if size > 1usize {
             new_list.root = self.root.unwrap().next;
             new_list.tail = self.tail;
-            new_list.size = context.gc.new_object(context.UIntType, size - 1);
+            new_list.size = context.gc.new_object(context.NumberType, Number::from(size - 1));
         }
 
         new_list

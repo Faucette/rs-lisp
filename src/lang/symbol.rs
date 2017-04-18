@@ -1,10 +1,10 @@
 use collections::string::String;
 
 use core::{fmt, hash};
-use core::hash::Hasher;
+use core::hash::{Hash, Hasher};
 use core::ops::{Deref, DerefMut};
 
-use ::{Context, Hash, Ptr};
+use ::{Context, Ptr};
 
 use super::value::Value;
 use super::object::Object;

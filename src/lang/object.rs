@@ -1,10 +1,10 @@
 use core::fmt;
-use core::hash::Hasher;
+use core::hash::{Hash, Hasher};
 use core::ops::{Deref, DerefMut};
 
 use hash_map::DefaultHasher;
 
-use ::{Hash, Ptr};
+use ::Ptr;
 use ::lang::{Value, Type};
 
 
@@ -108,6 +108,7 @@ impl<T: Hash> Hash for Object<T> {
 
     #[inline(always)]
     fn hash<H: Hasher>(&self, state: &mut H) {
+        self.typ.value().hash(state);
         self.value.hash(state);
     }
 }

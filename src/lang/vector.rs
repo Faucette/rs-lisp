@@ -1,14 +1,15 @@
 use collections::vec::Vec;
 
 use core::fmt;
-use core::hash::Hasher;
+use core::hash::{Hash, Hasher};
 
-use ::{Context, Hash, Ptr};
+use ::{Context, Ptr};
 
 use super::object::Object;
 use super::value::Value;
 use super::scope::Scope;
 use super::list::List;
+use super::number::Number;
 
 
 pub const SHIFT: usize = 5;
@@ -19,7 +20,7 @@ pub const MASK: usize = SIZE - 1;
 pub struct Vector {
     root: Ptr<Object<[Ptr<Value>; SIZE]>>,
     tail: Ptr<Object<[Ptr<Value>; SIZE]>>,
-    size: Ptr<Object<usize>>,
+    size: Ptr<Object<Number>>,
     shift: usize,
 }
 
@@ -30,7 +31,7 @@ impl Vector {
         Vector {
             root: Self::create_array(context),
             tail: Self::create_array(context),
-            size: context.gc.new_object(context.UIntType, 0usize),
+            size: context.gc.new_object(context.NumberType, Number::from(0usize)),
             shift: SHIFT,
         }
     }
@@ -40,7 +41,7 @@ impl Vector {
         Vector {
             root: self.root,
             tail: self.tail,
-            size: context.gc.new_object(context.UIntType, *self.size.value()),
+            size: context.gc.new_object(context.NumberType, Number::from(*self.size.value())),
             shift: self.shift,
         }
     }
@@ -58,7 +59,7 @@ impl Vector {
 
     #[inline(always)]
     pub fn size(&self) -> usize {
-        *self.size.value()
+        **self.size.value() as usize
     }
 
     #[inline]
@@ -204,7 +205,7 @@ impl Vector {
             self.shift = new_shift;
         }
 
-        *self.size.value_mut() = size + 1usize;
+        **self.size.value_mut() = (size + 1usize) as f64;
     }
 
     #[inline(always)]
@@ -316,13 +317,13 @@ impl Ptr<Object<Vector>> {
     }
 
     #[inline(always)]
-    pub fn size(&self) -> Ptr<Object<usize>> {
+    pub fn size(&self) -> Ptr<Object<Number>> {
         self.size
     }
 
     #[inline(always)]
     pub fn is_empty(&self, context: &Context) -> Ptr<Object<bool>> {
-        if self.size.value() == &0 {
+        if (&**self).size() == 0usize {
             context.true_value
         } else {
             context.false_value
@@ -330,8 +331,8 @@ impl Ptr<Object<Vector>> {
     }
 
     #[inline]
-    pub fn get(&self, index: Ptr<Object<usize>>, not_set_value: Ptr<Value>) -> Ptr<Value> {
-        let index = *index.value();
+    pub fn get(&self, index: Ptr<Object<Number>>, not_set_value: Ptr<Value>) -> Ptr<Value> {
+        let index = **index.value() as usize;
 
         if index >= (&**self).size() {
             not_set_value
@@ -368,9 +369,9 @@ impl Ptr<Object<Vector>> {
     }
 
     #[inline(always)]
-    pub fn set(&mut self, context: &Context, index: Ptr<Object<usize>>, value: Ptr<Value>) -> Self {
+    pub fn set(&mut self, context: &Context, index: Ptr<Object<Number>>, value: Ptr<Value>) -> Self {
         let size = (&**self).size();
-        let index = *index.value();
+        let index = **index.value() as usize;
 
         if index < size {
             self.set_unchecked(context, size, index, value)
@@ -380,9 +381,9 @@ impl Ptr<Object<Vector>> {
     }
 
     #[inline]
-    pub fn insert(&mut self, context: &Context, index: Ptr<Object<usize>>, value: Ptr<Value>) -> Self {
+    pub fn insert(&mut self, context: &Context, index: Ptr<Object<Number>>, value: Ptr<Value>) -> Self {
         let size = (&**self).size();
-        let index = *index.value();
+        let index = **index.value() as usize;
 
         if index < size {
             let mut vector: Vec<Ptr<Value>> = self.iter().collect();

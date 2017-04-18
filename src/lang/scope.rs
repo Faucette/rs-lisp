@@ -1,8 +1,8 @@
 use core::sync::atomic::{AtomicPtr, Ordering};
 use core::{fmt, ptr};
-use core::hash::Hasher;
+use core::hash::{Hash, Hasher};
 
-use ::{Context, Hash, Ptr};
+use ::{Context, Ptr};
 
 use super::object::Object;
 use super::value::Value;
@@ -137,7 +137,7 @@ impl Hash for Scope {
             Some(parent) => Hash::hash(&*parent, state),
             None => (),
         }
-        Hash::hash(&self.mappings, state);
+        Hash::hash(&self.mappings(), state);
     }
 }
 

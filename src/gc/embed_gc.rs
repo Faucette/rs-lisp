@@ -4,8 +4,9 @@ use alloc::heap;
 use collections::linked_list::LinkedList;
 
 use core::{fmt, mem};
+use core::hash::Hash;
 
-use ::{Hash, Ptr};
+use ::{Ptr};
 use ::lang::{Object, Type, Value};
 
 

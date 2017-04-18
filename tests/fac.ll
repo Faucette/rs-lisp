@@ -5,8 +5,8 @@
   (List `def name (List `fn name args body)))
 
 (defn fac (x)
-  (if (uint_eq x 0)
+  (if (number_eq x 0)
     1
-    (uint_mul x (fac (uint_sub x 1)))))
+    (number_mul x (fac (number_sub x 1)))))
 
 (fac 16)

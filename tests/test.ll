@@ -8,20 +8,17 @@
 (defmacro defn (name, args, body)
   (List `def name (List `fn name args body)))
 
-(defmacro deftype (name, super, value)
-  (List `def name (List `type name super value)))
-
 (defn add (a, b)
-  (uint_add a, b))
+  (number_add a, b))
 
-(def result (uint_add 1, 1))
+(def result (number_add 1, 1))
 
 (print "1 + 1 = ", result)
 
 (defn fac (x)
-  (if (uint_eq x 0)
+  (if (number_eq x 0)
     1
-    (uint_mul x (fac (uint_sub x 1)))))
+    (number_mul x (fac (number_sub x 1)))))
 
 (fac 5)
 
@@ -32,14 +29,10 @@
   (print [])
   (print [true, false]))
 
-(deftype Person (age, name) Any)
-
-(def bob (Person 42, "Bob"))
-
 (let (a 10 b 20)
   (print a, b))
 
-(def expr `(uint_add 1, 1))
+(def expr `(number_add 1, 1))
 (eval expr)
 
 

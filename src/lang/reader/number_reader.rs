@@ -1,7 +1,7 @@
 use collections::string::String;
 
 use ::{Context, Ptr};
-use ::lang::{Value, Object, Scope, List};
+use ::lang::{Value, Object, Scope, List, Number};
 use super::reader::Reader;
 
 
@@ -44,16 +44,16 @@ pub fn number_reader(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Ob
 
         ret_list.push_back_mut(context, context.true_value.as_value());
 
-        if read_dot {
-            ret_list.push_back_mut(context,
-                context.gc.new_object(context.Float64Type, string.parse::<f64>().unwrap()).as_value());
+        let number = if read_dot {
+            Number::from(string.parse::<f64>().unwrap())
         } else if is_negative {
-            ret_list.push_back_mut(context,
-                context.gc.new_object(context.IntType, string.parse::<isize>().unwrap()).as_value());
+            Number::from(string.parse::<isize>().unwrap())
         } else {
-            ret_list.push_back_mut(context,
-                context.gc.new_object(context.UIntType, string.parse::<usize>().unwrap()).as_value());
-        }
+            Number::from(string.parse::<usize>().unwrap())
+        };
+
+        ret_list.push_back_mut(context,
+            context.gc.new_object(context.NumberType, number).as_value());
 
         ret_list.as_value()
     } else {

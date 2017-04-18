@@ -10,7 +10,7 @@ pub fn quoted_reader(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Ob
 
     let ch = reader.peek(0);
 
-    if ch == '"' || ch == '\'' {
+    if ch == '"' {
         let quote = ch;
 
         reader.read();
@@ -29,11 +29,7 @@ pub fn quoted_reader(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Ob
             }
         }
 
-        let value = if quote == '"' {
-            context.gc.new_object(context.StringType, string).as_value()
-        } else {
-            context.gc.new_object(context.CharType, string.pop().unwrap()).as_value()
-        };
+        let value = context.gc.new_object(context.StringType, string).as_value();
 
         let mut ret_list = context.gc.new_object(context.ListType, List::new(context));
         ret_list.push_back_mut(context, context.true_value.as_value());
