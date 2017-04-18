@@ -14,21 +14,21 @@ use super::symbol::Symbol;
 use super::keyword::Keyword;
 use super::scope::Scope;
 use super::_struct::Struct;
+use super::interface:;Interface;
 
 
 pub struct Type {
     pub(crate) name: String,
-
-    pub(crate) supr: Option<Ptr<Object<Type>>>,
 
     pub(crate) fields: Option<Vec<Ptr<Object<Keyword>>>>,
     //pub(crate) types: Option<Vec<Ptr<Object<Type>>>>,
 
     pub(crate) constructor: Option<Ptr<Object<Function>>>,
 
+    pub(crate) implements: Vec<Ptr<Object<Interface>>>,
+
     //pub(crate) size: usize,
 
-    pub(crate) is_abstract: bool,
     pub(crate) is_bits: bool,
 }
 
@@ -38,27 +38,12 @@ unsafe impl Sync for Type {}
 impl Type {
 
     #[inline(always)]
-    pub fn is_real(&self) -> bool { !self.is_abstract }
-
-    #[inline(always)]
-    pub fn is_abstract(&self) -> bool { self.is_abstract }
-
-    #[inline(always)]
-    pub fn is_bits(&self) -> bool { self.is_bits }
-
-    #[inline(always)]
-    pub fn instance_of(&self, typ: &Type) -> bool {
-        if self == typ {
-            true
-        } else if let Some(supr) = self.supr {
-            supr.instance_of(typ)
-        } else {
-            false
-        }
+    pub fn is_bits(&self) -> bool {
+        self.is_bits
     }
 
     #[inline]
-    pub fn new(context: &Context, name_value: Ptr<Value>, fields_value: Ptr<Value>, supr_value: Ptr<Value>) -> Ptr<Object<Type>> {
+    pub fn new(context: &Context, name_value: Ptr<Value>, fields_value: Ptr<Value>) -> Ptr<Object<Type>> {
         let name: String = {
             if name_value.typ() == context.KeywordType {
                 let keyword = name_value.downcast::<Object<Keyword>>().unwrap();
@@ -71,14 +56,6 @@ impl Type {
             }
         };
 
-        let supr = {
-            if supr_value.typ() == context.TypeType {
-                supr_value.downcast::<Object<Type>>().unwrap()
-            } else {
-                context.AnyType
-            }
-        };
-
         let typ_value = {
             if fields_value.typ() == context.ListType {
                 let list = fields_value.downcast::<Object<List>>().unwrap();
@@ -86,20 +63,14 @@ impl Type {
                 TypeBuilder::new(name.as_str())
                     .size(mem::size_of::<Struct>())
                     .fields(list.iter().map(|v| Keyword::to_keyword(context, v)).collect())
-                    .supr(supr).build()
+                    .build()
 
             } else if fields_value.typ() == context.UIntType {
                 let size = fields_value.downcast::<Object<usize>>().unwrap();
 
                 TypeBuilder::new(name.as_str())
-                    .supr(supr).size(*size.value()).is_bits().build()
+                    .size(*size.value()).is_bits().build()
 
-            } else if
-                fields_value.typ() == context.KeywordType &&
-                **fields_value.downcast::<Object<Keyword>>().unwrap().value() == "abstract"
-            {
-                TypeBuilder::new(name.as_str())
-                    .supr(supr).is_abstract().build()
             } else {
                 panic!("invalid type argument {:?}", fields_value)
             }
@@ -118,10 +89,7 @@ impl Type {
         let fields = args.first(context);
         args = args.pop(context);
 
-        let supr = args.first(context);
-        //args = args.pop(context);
-
-        Type::new(context, name, fields, supr).as_value()
+        Type::new(context, name, fields).as_value()
     }
 }
 
@@ -143,7 +111,6 @@ impl Hash for Type {
             Some(ref constructor) => Hash::hash(&**constructor, state),
             None => (),
         }
-        self.is_abstract.hash(state);
         self.is_bits.hash(state);
     }
 }
@@ -173,11 +140,7 @@ impl fmt::Display for Type {
                         write!(f, "{}", key)?;
                     }
                 }
-
-                match self.supr {
-                    Some(supr) => write!(f, ") {})", supr.name),
-                    None => write!(f, "))"),
-                }
+                write!(f, "))")
             },
             None => write!(f, "(type {})", self.name)
         }
@@ -195,8 +158,6 @@ impl fmt::Debug for Type {
 pub struct TypeBuilder {
     name: String,
 
-    supr: Option<Ptr<Object<Type>>>,
-
     fields: Option<Vec<Ptr<Object<Keyword>>>>,
     types: Option<Vec<Ptr<Object<Type>>>>,
 
@@ -204,7 +165,6 @@ pub struct TypeBuilder {
 
     size: usize,
 
-    is_abstract: bool,
     is_bits: bool,
 }
 
@@ -214,8 +174,6 @@ impl TypeBuilder {
         TypeBuilder {
             name: name.into(),
 
-            supr: None,
-
             fields: None,
             types: None,
 
@@ -223,16 +181,10 @@ impl TypeBuilder {
 
             size: 0usize,
 
-            is_abstract: false,
             is_bits: false,
         }
     }
 
-    #[inline]
-    pub fn supr(mut self, supr: Ptr<Object<Type>>) -> Self {
-        self.supr = Some(supr);
-        self
-    }
     #[inline]
     pub fn fields(mut self, fields: Vec<Ptr<Object<Keyword>>>) -> Self {
         self.fields = Some(fields);
@@ -254,11 +206,6 @@ impl TypeBuilder {
         self
     }
     #[inline]
-    pub fn is_abstract(mut self) -> Self {
-        self.is_abstract = true;
-        self
-    }
-    #[inline]
     pub fn is_bits(mut self) -> Self {
         self.is_bits = true;
         self
@@ -268,8 +215,6 @@ impl TypeBuilder {
         Type {
             name: self.name,
 
-            supr: self.supr,
-
             fields: self.fields,
             //types: self.types,
 
@@ -277,7 +222,6 @@ impl TypeBuilder {
 
             //size: self.size,
 
-            is_abstract: self.is_abstract,
             is_bits: self.is_bits,
         }
     }

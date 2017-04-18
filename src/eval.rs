@@ -194,17 +194,12 @@ pub fn eval(context: &Context, scope: Ptr<Object<Scope>>, value: Ptr<Value>) -> 
                                         list = list.pop(context);
 
                                         let fields = list.first(context);
-                                        list = list.pop(context);
-
-                                        let supr = list.first(context);
                                         //list = list.pop(context);
 
-                                        stack.push_front(name);
                                         stack.push_front(fields);
-                                        stack.push_front(supr);
+                                        stack.push_front(name);
 
                                         state_stack.push_front(State::Type);
-                                        state_stack.push_front(State::Eval);
                                     },
                                     "throw" => {
                                         stack.push_front(list.as_value());
@@ -253,11 +248,7 @@ pub fn eval(context: &Context, scope: Ptr<Object<Scope>>, value: Ptr<Value>) -> 
                     } else if callable_typ == context.TypeType {
                         let typ = callable.downcast::<Object<Type>>().unwrap();
 
-                        if typ.is_abstract() {
-                            stack.push_front(context.gc.new_object(context.StringType,
-                                format!("can not call abstract type {:?} as constructor function", callable)).as_value());
-                            state_stack.push_front(State::Throw);
-                        } else if typ.is_bits() {
+                        if typ.is_bits() {
                             stack.push_front(context.gc.new_object(context.StringType,
                                 format!("creating bit types from front end not supported yet")).as_value());
                             state_stack.push_front(State::Throw);
@@ -461,11 +452,10 @@ pub fn eval(context: &Context, scope: Ptr<Object<Scope>>, value: Ptr<Value>) -> 
                     // TODO: remove this state?
                 },
                 State::Type => {
-                    let supr = stack.pop_front().unwrap();
-                    let fields = stack.pop_front().unwrap();
                     let name = stack.pop_front().unwrap();
+                    let fields = stack.pop_front().unwrap();
 
-                    let typ = Type::new(context, name, fields, supr);
+                    let typ = Type::new(context, name, fields);
                     stack.push_front(typ.as_value());
                 },
                 State::Throw => {

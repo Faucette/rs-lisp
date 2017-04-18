@@ -1,49 +1,83 @@
-;; primitives
-;; U8, U16, U32, U64, USize
-;; I8, I16, I32, I64, ISize
-;; F32, F64
-;; Str, Char, Bool, Fn
 
 
-;; defines
-(def name USize 10)
-(def name Fn (fn add(a USize, b USize) USize (+ a b)))
 
-;; functions
-(fn name (arg0, arg1) Bool
-  (= arg0, arg1))
+fn fac<T: Zero + One + Mul + Sub>(x: T) -> T {
+  if x == T::zero() {
+    T::one()
+  } else {
+    x * fac::<T>(x - T::one())
+  }
+}
 
-;; if else
-(if (= a, b)
-  (true)
-  (false))
-
-;; real type with fields
-(Type :StructName Any (
-  :field0 ISize,
-  :field1 USize))
-
-(Function :name (a, b)
-  (+ a, b))
-
-;; create new types
-(StructName 1, 1)
-
-;; bits type of 4 bytes
-(Type :BitTypeName Any 4)
-
-;; abstract type
-(Type :StructName Any :abstract)
+fac(10_usize); // infer type and call
+fac::usize(10_usize);
 
 
-(mod name (
-  ;; introduces new sub scope
-))
+fn fac(x: Number) -> Number {
+  if x == 0 {
+    1
+  } else {
+    x * fac(x - 1)
+  }
+}
 
-;; let
-(let (a U8, b Char, c Bool) (256, 'c', true)
-  (= a, b, c))
 
-(def add
-  [a Any, b Number]
-  (+ a, b)
+UInt < Unsigned < Integer < Number
+fac(10)
+
+fn fac(x) {
+  if x == 0 {
+    1
+  } else {
+    x * fac(x - 1)
+  }
+}
+
+fac(10)
+
+
+@spec fac(UInt) -> UInt
+fn fac(x) {
+  if x == 0 {
+    1
+  } else {
+    x * fac(x - 1)
+  }
+}
+
+(spec fac (UInt) UInt)
+(fn fac (x)
+  (= x, 0)
+    1
+    (* x, (fac (- x, 1))))
+
+
+// generic function
+(gfn fac (T (Zero, One, Mul, Sub)) (x T) T
+  (= x, (zero T))
+    (one T)
+    (* x (fac (- x (one T)))))
+
+// define before use
+(def fac::USize (fac (UInt)))
+(fac::USize 10)
+
+// check if template function then try and compile one then call
+(fac 10)
+
+// runtime check lookup/define then call
+(fac (UInt) 10)
+
+
+(fn fac (x Number) Number
+  (= x, 0)
+    1
+    (* x (fac (- x 1))))
+
+(fac 10)
+
+
+(fn fac (x)
+  (= x, 0)
+    1
+    (* x (fac (- x 1))))

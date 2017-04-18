@@ -15,7 +15,6 @@ pub static DEFAULT_SCOPE: &'static str = "user";
 
 #[allow(non_snake_case)]
 pub struct Context {
-    pub AnyType: Ptr<Object<Type>>,
     pub TypeType: Ptr<Object<Type>>,
 
     pub FunctionType: Ptr<Object<Type>>,
@@ -32,13 +31,6 @@ pub struct Context {
     pub SymbolType: Ptr<Object<Type>>,
     pub KeywordType: Ptr<Object<Type>>,
     pub StringType: Ptr<Object<Type>>,
-
-    pub NumberType: Ptr<Object<Type>>,
-    pub RealType: Ptr<Object<Type>>,
-    pub FloatType: Ptr<Object<Type>>,
-    pub IntegerType: Ptr<Object<Type>>,
-    pub SignedType: Ptr<Object<Type>>,
-    pub UnsignedType: Ptr<Object<Type>>,
 
     pub BooleanType: Ptr<Object<Type>>,
     pub CharType: Ptr<Object<Type>>,
@@ -76,15 +68,9 @@ impl Context {
         let mut TypeType = gc.new_null_typ_object(TypeBuilder::new("Type").build());
         TypeType.typ = TypeType;
 
-        let mut AnyType = gc.new_object(TypeType, TypeBuilder::new("Any")
-            .is_abstract().build());
-
-        AnyType.value.supr = Some(AnyType);
-        TypeType.value.supr = Some(AnyType);
-
         let mut FunctionType = gc.new_object(TypeType, TypeBuilder::new("Function")
             .size(mem::size_of::<Function>())
-            .supr(AnyType).build());
+            .build());
 
         FunctionType.value.constructor = Some(gc.new_object(FunctionType,
             Function::new_rust(Function::constructor)));
@@ -92,116 +78,100 @@ impl Context {
         let MacroType = gc.new_object(TypeType, TypeBuilder::new("Macro")
             .size(mem::size_of::<Function>())
             .constructor(gc.new_object(FunctionType, Function::new_rust(Function::macro_constructor)))
-            .supr(AnyType).build());
+            .build());
 
         TypeType.value.constructor = Some(gc.new_object(FunctionType,
             Function::new_rust(Type::constructor)));
 
         let ScopeType = gc.new_object(TypeType, TypeBuilder::new("Scope")
             .size(mem::size_of::<Scope>())
-            .supr(AnyType).build());
+            .build());
         let NilType = gc.new_object(TypeType, TypeBuilder::new("Nil")
             .constructor(gc.new_object(FunctionType, Function::new_rust(Nil::constructor)))
-            .supr(AnyType).build());
+            .build());
 
         let ReaderType = gc.new_object(TypeType, TypeBuilder::new("Reader")
             .size(mem::size_of::<Reader>())
             .constructor(gc.new_object(FunctionType, Function::new_rust(Reader::constructor)))
-            .supr(AnyType).build());
+            .build());
 
         let ListType = gc.new_object(TypeType, TypeBuilder::new("List")
-            .supr(AnyType)
+
             .size(mem::size_of::<List>())
             .constructor(gc.new_object(FunctionType, Function::new_rust(List::constructor)))
             .build());
         let VectorType = gc.new_object(TypeType, TypeBuilder::new("Vector")
-            .supr(AnyType)
+
             .size(mem::size_of::<Vector>())
             .constructor(gc.new_object(FunctionType, Function::new_rust(Vector::constructor)))
             .build());
         let HashMapType = gc.new_object(TypeType, TypeBuilder::new("HashMap")
-            .supr(AnyType)
+
             .size(mem::size_of::<HashMap>())
             .constructor(gc.new_object(FunctionType, Function::new_rust(HashMap::constructor)))
             .build());
 
         let SymbolType = gc.new_object(TypeType, TypeBuilder::new("Symbol")
-            .supr(AnyType)
+
             .size(mem::size_of::<String>())
             .constructor(gc.new_object(FunctionType, Function::new_rust(Symbol::constructor)))
             .build());
         let KeywordType = gc.new_object(TypeType, TypeBuilder::new("Keyword")
-            .supr(AnyType)
+
             .size(mem::size_of::<String>())
             .constructor(gc.new_object(FunctionType, Function::new_rust(Keyword::constructor)))
             .build());
         let StringType = gc.new_object(TypeType, TypeBuilder::new("String")
-            .supr(AnyType)
+
             .size(mem::size_of::<String>())
             .constructor(gc.new_object(FunctionType, Function::new_rust(String_constructor)))
             .build());
 
-        let NumberType = gc.new_object(TypeType, TypeBuilder::new("Number")
-            .supr(AnyType).is_abstract().build());
-
-        let RealType = gc.new_object(TypeType, TypeBuilder::new("Real")
-            .supr(NumberType).is_abstract().build());
-
-        let FloatType = gc.new_object(TypeType, TypeBuilder::new("Float")
-            .supr(RealType).is_abstract().build());
-
-        let IntegerType = gc.new_object(TypeType, TypeBuilder::new("Integer")
-            .supr(RealType).is_abstract().build());
-        let SignedType = gc.new_object(TypeType, TypeBuilder::new("Signed")
-            .supr(IntegerType).is_abstract().build());
-        let UnsignedType = gc.new_object(TypeType, TypeBuilder::new("Unsigned")
-            .supr(IntegerType).is_abstract().build());
-
         let BooleanType = gc.new_object(TypeType, TypeBuilder::new("Boolean")
             .constructor(gc.new_object(FunctionType, Function::new_rust(Boolean_constructor)))
-            .supr(IntegerType).size(mem::size_of::<bool>()).is_bits().build());
+            .size(mem::size_of::<bool>()).is_bits().build());
         let CharType = gc.new_object(TypeType, TypeBuilder::new("Char")
             .constructor(gc.new_object(FunctionType, Function::new_rust(Char_constructor)))
-            .supr(AnyType).size(mem::size_of::<char>()).is_bits().build());
+            .size(mem::size_of::<char>()).is_bits().build());
 
         let IntType = gc.new_object(TypeType, TypeBuilder::new("Int")
             .constructor(gc.new_object(FunctionType, Function::new_rust(Int_constructor)))
-            .supr(SignedType).size(mem::size_of::<isize>()).is_bits().build());
+            .size(mem::size_of::<isize>()).is_bits().build());
         let Int8Type = gc.new_object(TypeType, TypeBuilder::new("Int8")
             .constructor(gc.new_object(FunctionType, Function::new_rust(Int8_constructor)))
-            .supr(SignedType).size(mem::size_of::<i8>()).is_bits().build());
+            .size(mem::size_of::<i8>()).is_bits().build());
         let Int16Type = gc.new_object(TypeType, TypeBuilder::new("Int16")
             .constructor(gc.new_object(FunctionType, Function::new_rust(Int16_constructor)))
-            .supr(SignedType).size(mem::size_of::<i16>()).is_bits().build());
+            .size(mem::size_of::<i16>()).is_bits().build());
         let Int32Type = gc.new_object(TypeType, TypeBuilder::new("Int32")
             .constructor(gc.new_object(FunctionType, Function::new_rust(Int32_constructor)))
-            .supr(SignedType).size(mem::size_of::<i32>()).is_bits().build());
+            .size(mem::size_of::<i32>()).is_bits().build());
         let Int64Type = gc.new_object(TypeType, TypeBuilder::new("Int64")
             .constructor(gc.new_object(FunctionType, Function::new_rust(Int64_constructor)))
-            .supr(SignedType).size(mem::size_of::<i64>()).is_bits().build());
+            .size(mem::size_of::<i64>()).is_bits().build());
 
         let UIntType = gc.new_object(TypeType, TypeBuilder::new("UInt")
             .constructor(gc.new_object(FunctionType, Function::new_rust(UInt_constructor)))
-            .supr(UnsignedType).size(mem::size_of::<usize>()).is_bits().build());
+            .size(mem::size_of::<usize>()).is_bits().build());
         let UInt8Type = gc.new_object(TypeType, TypeBuilder::new("UInt8")
             .constructor(gc.new_object(FunctionType, Function::new_rust(UInt8_constructor)))
-            .supr(UnsignedType).size(mem::size_of::<u8>()).is_bits().build());
+            .size(mem::size_of::<u8>()).is_bits().build());
         let UInt16Type = gc.new_object(TypeType, TypeBuilder::new("UInt16")
             .constructor(gc.new_object(FunctionType, Function::new_rust(UInt16_constructor)))
-            .supr(UnsignedType).size(mem::size_of::<u16>()).is_bits().build());
+            .size(mem::size_of::<u16>()).is_bits().build());
         let UInt32Type = gc.new_object(TypeType, TypeBuilder::new("UInt32")
             .constructor(gc.new_object(FunctionType, Function::new_rust(UInt32_constructor)))
-            .supr(UnsignedType).size(mem::size_of::<u32>()).is_bits().build());
+            .size(mem::size_of::<u32>()).is_bits().build());
         let UInt64Type = gc.new_object(TypeType, TypeBuilder::new("UInt64")
             .constructor(gc.new_object(FunctionType, Function::new_rust(UInt64_constructor)))
-            .supr(UnsignedType).size(mem::size_of::<u64>()).is_bits().build());
+            .size(mem::size_of::<u64>()).is_bits().build());
 
         let Float32Type = gc.new_object(TypeType, TypeBuilder::new("Float32")
             .constructor(gc.new_object(FunctionType, Function::new_rust(Float32_constructor)))
-            .supr(FloatType).size(mem::size_of::<f32>()).is_bits().build());
+            .size(mem::size_of::<f32>()).is_bits().build());
         let Float64Type = gc.new_object(TypeType, TypeBuilder::new("Float64")
             .constructor(gc.new_object(FunctionType, Function::new_rust(Float64_constructor)))
-            .supr(FloatType).size(mem::size_of::<f64>()).is_bits().build());
+            .size(mem::size_of::<f64>()).is_bits().build());
 
         let true_value = gc.new_object(BooleanType, true);
         let false_value = gc.new_object(BooleanType, false);
@@ -223,7 +193,6 @@ impl Context {
         };
 
         scope.set_mut(gc.new_object(SymbolType, Symbol::new("Type".into())).as_value(), TypeType.as_value());
-        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Any".into())).as_value(), AnyType.as_value());
 
         // scope.set_mut(gc.new_object(SymbolType, Symbol::new("Scope".into())).as_value(), ScopeType.as_value());
         scope.set_mut(gc.new_object(SymbolType, Symbol::new("Function".into())).as_value(), FunctionType.as_value());
@@ -238,13 +207,6 @@ impl Context {
         scope.set_mut(gc.new_object(SymbolType, Symbol::new("Symbol".into())).as_value(), SymbolType.as_value());
         scope.set_mut(gc.new_object(SymbolType, Symbol::new("Keyword".into())).as_value(), KeywordType.as_value());
         scope.set_mut(gc.new_object(SymbolType, Symbol::new("String".into())).as_value(), StringType.as_value());
-
-        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Number".into())).as_value(), NumberType.as_value());
-        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Real".into())).as_value(), RealType.as_value());
-        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Float".into())).as_value(), FloatType.as_value());
-        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Integer".into())).as_value(), IntegerType.as_value());
-        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Signed".into())).as_value(), SignedType.as_value());
-        scope.set_mut(gc.new_object(SymbolType, Symbol::new("Unsigned".into())).as_value(), UnsignedType.as_value());
 
         scope.set_mut(gc.new_object(SymbolType, Symbol::new("Boolean".into())).as_value(), BooleanType.as_value());
         scope.set_mut(gc.new_object(SymbolType, Symbol::new("Char".into())).as_value(), CharType.as_value());
@@ -269,7 +231,6 @@ impl Context {
         scope.set_mut(gc.new_object(SymbolType, Symbol::new("nil".into())).as_value(), nil_value.as_value());
 
         Context {
-            AnyType: AnyType,
             TypeType: TypeType,
 
             FunctionType: FunctionType,
@@ -286,13 +247,6 @@ impl Context {
             SymbolType: SymbolType,
             KeywordType: KeywordType,
             StringType: StringType,
-
-            NumberType: NumberType,
-            RealType: RealType,
-            FloatType: FloatType,
-            IntegerType: IntegerType,
-            SignedType: SignedType,
-            UnsignedType: UnsignedType,
 
             BooleanType: BooleanType,
             CharType: CharType,
@@ -418,13 +372,13 @@ pub fn Char_constructor(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr
 }
 
 macro_rules! create_number_constructor {
-    ($name:ident, $default:expr) => (
+    ($name:ident, $typ:ident, $default:expr) => (
         #[allow(non_snake_case)]
         #[inline]
         pub fn $name(context: &Context, _scope: Ptr<Object<Scope>>, args: Ptr<Object<List>>) -> Ptr<Value> {
             let value = args.first(context);
 
-            if value.typ().instance_of(&**context.NumberType) {
+            if value.typ() == context.$typ {
                 context.gc.new_object(context.Int8Type, $default).as_value() // TODO add number casting
             } else {
                 context.gc.new_object(context.Int8Type, $default).as_value()
@@ -433,17 +387,17 @@ macro_rules! create_number_constructor {
     );
 }
 
-create_number_constructor!(Int_constructor, 0usize);
-create_number_constructor!(Int8_constructor, 0u8);
-create_number_constructor!(Int16_constructor, 0u16);
-create_number_constructor!(Int32_constructor, 0u32);
-create_number_constructor!(Int64_constructor, 0u64);
+create_number_constructor!(Int_constructor, IntType, 0usize);
+create_number_constructor!(Int8_constructor, Int8Type, 0u8);
+create_number_constructor!(Int16_constructor, Int16Type, 0u16);
+create_number_constructor!(Int32_constructor, Int32Type, 0u32);
+create_number_constructor!(Int64_constructor, Int64Type, 0u64);
 
-create_number_constructor!(UInt_constructor, 0isize);
-create_number_constructor!(UInt8_constructor, 0i8);
-create_number_constructor!(UInt16_constructor, 0i16);
-create_number_constructor!(UInt32_constructor, 0i32);
-create_number_constructor!(UInt64_constructor, 0i64);
+create_number_constructor!(UInt_constructor, UIntType, 0isize);
+create_number_constructor!(UInt8_constructor, UInt8Type, 0i8);
+create_number_constructor!(UInt16_constructor, UInt16Type, 0i16);
+create_number_constructor!(UInt32_constructor, UInt32Type, 0i32);
+create_number_constructor!(UInt64_constructor, UInt64Type, 0i64);
 
-create_number_constructor!(Float32_constructor, 0f32);
-create_number_constructor!(Float64_constructor, 0f64);
+create_number_constructor!(Float32_constructor, Float32Type, 0f32);
+create_number_constructor!(Float64_constructor, Float64Type, 0f64);

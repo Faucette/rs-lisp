@@ -24,3 +24,11 @@
 ; Varargs catch first two in a and b and put everything else in the vector c
 (defn add [ a b ... c ]
    (apply + (push-front a (push-front b c))))
+
+(defn fac (x :UInt) :UInt
+  (if (= x, 0_UInt)
+    1_UInt
+    (* x, (fac (- x, 1)))))
+
+(defn add (a :UInt, b :UInt, ... rest :UInt) :UInt
+  (print rest))

@@ -139,8 +139,8 @@ impl fmt::Display for Function {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Function::Constructor(_) => write!(f, ":constructor_function"),
-            &Function::Rust(_) => write!(f, ":native_function"),
+            &Function::Constructor(_) => write!(f, ":constructor"),
+            &Function::Rust(_) => write!(f, ":native"),
             &Function::Internal(_, name, args, body) => {
                 if let Some(n) = name {
                     write!(f, "(fn {} {} {})", n, args, body)
